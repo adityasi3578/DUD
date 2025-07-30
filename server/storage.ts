@@ -25,6 +25,7 @@ import {
   type InsertProjectUpdate
 } from "@shared/schema";
 import { db } from "./db";
+import { memStorage } from "./mem-storage";
 import { eq, desc, and, gte, lte, sql } from "drizzle-orm";
 
 export interface IStorage {
@@ -395,4 +396,6 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-export const storage = new DatabaseStorage();
+export const storage: IStorage = process.env.DATABASE_URL
+  ? new DatabaseStorage()
+  : memStorage;
