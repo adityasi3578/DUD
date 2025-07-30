@@ -1,6 +1,13 @@
 import { BarChart3, Target, Clock, Settings, Zap } from "lucide-react";
+import { Link, useLocation } from "wouter";
 
 export function Sidebar() {
+  const [location] = useLocation();
+
+  const isActive = (path: string) => {
+    return location === path;
+  };
+
   return (
     <aside className="w-64 bg-white border-r border-slate-200 flex flex-col">
       <div className="p-6 border-b border-slate-200">
@@ -15,40 +22,56 @@ export function Sidebar() {
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
           <li>
-            <a
-              href="#"
-              className="flex items-center space-x-3 px-3 py-2 rounded-lg bg-primary/10 text-primary font-medium"
+            <Link
+              href="/"
+              className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                isActive('/') 
+                  ? 'bg-primary/10 text-primary font-medium' 
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
             >
               <BarChart3 className="w-5 h-5" />
               <span>Dashboard</span>
-            </a>
+            </Link>
           </li>
           <li>
-            <a
-              href="#"
-              className="flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
+            <Link
+              href="/tasks"
+              className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                isActive('/tasks') 
+                  ? 'bg-primary/10 text-primary font-medium' 
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
             >
               <Target className="w-5 h-5" />
               <span>Tasks</span>
-            </a>
+            </Link>
           </li>
           <li>
-            <a
-              href="#"
-              className="flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
+            <Link
+              href="/analytics"
+              className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                isActive('/analytics') 
+                  ? 'bg-primary/10 text-primary font-medium' 
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
             >
               <Zap className="w-5 h-5" />
               <span>Analytics</span>
-            </a>
+            </Link>
           </li>
           <li>
-            <a
-              href="#"
-              className="flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
+            <Link
+              href="/settings"
+              className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                isActive('/settings') 
+                  ? 'bg-primary/10 text-primary font-medium' 
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
             >
               <Settings className="w-5 h-5" />
               <span>Settings</span>
-            </a>
+            </Link>
           </li>
         </ul>
       </nav>
