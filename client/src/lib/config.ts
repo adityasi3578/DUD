@@ -1,5 +1,5 @@
 // API Configuration
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://YOUR-ACTUAL-RENDER-URL.onrender.com';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://dud-backend-48y7.onrender.com';
 
 // Helper function to build API URLs
 export function buildApiUrl(path: string): string {
