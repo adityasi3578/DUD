@@ -11,7 +11,8 @@ import Settings from "@/pages/settings";
 import Projects from "@/pages/projects";
 import AdminPanel from "@/pages/admin-panel";
 import TeamDashboard from "@/pages/team-dashboard";
-import Landing from "@/pages/landing";
+import SigninPage from "@/pages/signin";
+import SignupPage from "@/pages/signup";
 import NotFound from "@/pages/not-found";
 import type { User } from "@shared/schema";
 
@@ -29,13 +30,37 @@ function Router() {
   if (!isAuthenticated) {
     return (
       <Switch>
-        <Route path="/" component={Landing} />
-        <Route component={NotFound} />
+        <Route path="/signup" component={SignupPage} />
+        <Route path="/" component={SigninPage} />
+        <Route component={SigninPage} />
       </Switch>
     );
   }
 
+  // Check if user account is approved
   const userTyped = user as User;
+  if (userTyped && userTyped.status === "PENDING") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center space-y-4">
+          <h1 className="text-2xl font-bold">Account Pending Approval</h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Your account is waiting for admin approval. You'll be notified once approved.
+          </p>
+          <button
+            onClick={async () => {
+              await fetch("/api/auth/signout", { method: "POST" });
+              window.location.href = "/";
+            }}
+            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const isAdmin = userTyped?.role === "ADMIN";
 
   return (

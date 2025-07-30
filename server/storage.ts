@@ -1,12 +1,18 @@
 import { 
   users, 
+  teams,
+  teamMemberships,
   dailyUpdates, 
   goals, 
   activities, 
   projects,
   projectUpdates,
   type User, 
-  type UpsertUser,
+  type InsertUser,
+  type Team,
+  type InsertTeam,
+  type TeamMembership,
+  type InsertTeamMembership,
   type DailyUpdate, 
   type InsertDailyUpdate, 
   type Goal, 
@@ -22,9 +28,12 @@ import { db } from "./db";
 import { eq, desc, and, gte, lte, sql } from "drizzle-orm";
 
 export interface IStorage {
-  // User methods (Replit Auth compatible)
+  // User methods
   getUser(id: string): Promise<User | undefined>;
-  upsertUser(user: UpsertUser): Promise<User>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  updateUserStatus(userId: string, status: string): Promise<User>;
+  updateUserRole(userId: string, role: string): Promise<User>;
 
   // Daily update methods
   getDailyUpdate(userId: string, date: string): Promise<DailyUpdate | undefined>;
@@ -57,23 +66,30 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  // User methods for Replit Auth
+  // User methods
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+    return user || undefined;
   }
 
-  async upsertUser(userData: UpsertUser): Promise<User> {
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
+  }
+
+  async createUser(userData: InsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
       .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          ...userData,
-          updatedAt: new Date(),
-        },
-      })
+      .returning();
+    return user;
+  }
+
+  async updateUserStatus(userId: string, status: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(users.id, userId))
       .returning();
     return user;
   }

@@ -1,20 +1,104 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { authenticateUser, createUser } from "./auth";
 import { insertDailyUpdateSchema, insertGoalSchema, insertProjectSchema, insertProjectUpdateSchema } from "@shared/schema";
 import { z } from "zod";
+import session from "express-session";
+import connectPg from "connect-pg-simple";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Set up authentication middleware
-  await setupAuth(app);
+  // Session setup
+  app.set("trust proxy", 1);
+  
+  const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
+  const pgStore = connectPg(session);
+  const sessionStore = new pgStore({
+    conString: process.env.DATABASE_URL,
+    createTableIfMissing: false,
+    ttl: sessionTtl,
+    tableName: "sessions",
+  });
+
+  app.use(session({
+    secret: process.env.SESSION_SECRET || "fallback-secret-for-dev",
+    store: sessionStore,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: false, // Set to true in production with HTTPS
+      maxAge: sessionTtl,
+    },
+  }));
+
+  // Auth middleware
+  const isAuthenticated = (req: any, res: any, next: any) => {
+    if (req.session && req.session.userId) {
+      return next();
+    }
+    res.status(401).json({ message: "Unauthorized" });
+  };
 
   // Auth routes
+  app.post("/api/auth/signup", async (req, res) => {
+    try {
+      const { email, password, firstName, lastName } = req.body;
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: "User already exists with this email" });
+      }
+
+      const user = await createUser({ email, password, firstName, lastName });
+      res.status(201).json({ message: "Account created successfully. Awaiting admin approval." });
+    } catch (error) {
+      console.error("Signup error:", error);
+      res.status(500).json({ message: "Failed to create account" });
+    }
+  });
+
+  app.post("/api/auth/signin", async (req: any, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      const user = await authenticateUser(email, password);
+      if (!user) {
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+
+      if (user.status !== "APPROVED") {
+        return res.status(403).json({ message: "Account is pending approval" });
+      }
+
+      req.session.userId = user.id;
+      res.json(user);
+    } catch (error) {
+      console.error("Signin error:", error);
+      res.status(500).json({ message: "Failed to sign in" });
+    }
+  });
+
+  app.post("/api/auth/signout", (req: any, res) => {
+    req.session.destroy((err: any) => {
+      if (err) {
+        return res.status(500).json({ message: "Failed to sign out" });
+      }
+      res.json({ message: "Signed out successfully" });
+    });
+  });
+
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.userId;
       const user = await storage.getUser(userId);
-      res.json(user);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      // Don't send password
+      const { password: _, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
@@ -287,7 +371,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Admin middleware
   const isAdmin = async (req: any, res: any, next: any) => {
-    const userId = req.user?.claims?.sub;
+    const userId = req.session?.userId;
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -313,12 +397,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/admin/teams", isAuthenticated, isAdmin, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.userId;
       const team = await storage.createTeam(userId, req.body);
       res.json(team);
     } catch (error) {
       console.error("Error creating team:", error);
       res.status(500).json({ message: "Failed to create team" });
+    }
+  });
+
+  app.patch("/api/admin/users/:id/status", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      const user = await storage.updateUserStatus(id, status);
+      res.json(user);
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      res.status(500).json({ message: "Failed to update user status" });
     }
   });
 
@@ -369,7 +465,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User team routes
   app.get("/api/user/teams", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.userId;
       const teams = await storage.getUserTeams(userId);
       res.json(teams);
     } catch (error) {
@@ -412,7 +508,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/user/join-team", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.userId;
       const { teamId } = req.body;
       const membership = await storage.joinTeam(userId, teamId);
       res.json(membership);
