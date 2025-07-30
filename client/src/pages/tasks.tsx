@@ -50,7 +50,7 @@ export default function Tasks() {
 
   const createGoalMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const response = await apiRequest("POST", "/api/goals", data);
+      const response = await apiRequest("/api/goals", "POST", data);
       return response.json();
     },
     onSuccess: () => {
