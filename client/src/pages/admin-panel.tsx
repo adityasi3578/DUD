@@ -93,6 +93,25 @@ export default function AdminPanel() {
     },
   });
 
+  const updateUserStatusMutation = useMutation({
+    mutationFn: ({ userId, status }: { userId: string; status: string }) =>
+      apiRequest(`/api/admin/users/${userId}/status`, "PATCH", { status }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      toast({
+        title: "Success",
+        description: "User status updated",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update user status",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCreateTeam = () => {
     if (newTeam.name.trim()) {
       createTeamMutation.mutate(newTeam);
@@ -102,11 +121,14 @@ export default function AdminPanel() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "ACTIVE":
+      case "APPROVED":
         return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
       case "PENDING":
         return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
       case "INACTIVE":
         return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
+      case "REJECTED":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
       default:
         return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
     }
@@ -246,9 +268,12 @@ export default function AdminPanel() {
                       <Badge className={getRoleColor(user.role)}>
                         {user.role}
                       </Badge>
+                      <Badge className={getStatusColor(user.status)}>
+                        {user.status}
+                      </Badge>
                       <Select
                         value={user.role}
-                        onValueChange={(role) => 
+                        onValueChange={(role) =>
                           updateUserRoleMutation.mutate({ userId: user.id, role })
                         }
                       >
@@ -260,6 +285,35 @@ export default function AdminPanel() {
                           <SelectItem value="ADMIN">ADMIN</SelectItem>
                         </SelectContent>
                       </Select>
+                      {user.status === "PENDING" && (
+                        <>
+                          <Button
+                            size="sm"
+                            onClick={() =>
+                              updateUserStatusMutation.mutate({
+                                userId: user.id,
+                                status: "APPROVED",
+                              })
+                            }
+                          >
+                            <Check className="h-4 w-4 mr-1" />
+                            Approve
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              updateUserStatusMutation.mutate({
+                                userId: user.id,
+                                status: "REJECTED",
+                              })
+                            }
+                          >
+                            <X className="h-4 w-4 mr-1" />
+                            Reject
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
