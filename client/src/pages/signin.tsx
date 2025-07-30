@@ -10,6 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import type { User } from "@shared/schema";
 
 const signinSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -36,14 +37,14 @@ export default function SigninPage() {
         method: "POST",
         body: JSON.stringify(data),
       });
-      return response;
+      return response.json() as Promise<User>;
     },
-    onSuccess: () => {
+    onSuccess: (user: User) => {
       toast({
         title: "Success",
         description: "You have been signed in successfully.",
       });
-      setLocation("/dashboard"); // ✅ updated to go to dashboard
+      setLocation(user.role === "ADMIN" ? "/admin" : "/team-dashboard");
     },
     onError: (error: Error) => {
       toast({
