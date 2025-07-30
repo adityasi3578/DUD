@@ -43,7 +43,7 @@ export default function SigninPage() {
         title: "Success",
         description: "You have been signed in successfully.",
       });
-      setLocation("/");
+      setLocation("/dashboard"); // ✅ updated to go to dashboard
     },
     onError: (error: Error) => {
       toast({

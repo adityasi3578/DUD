@@ -75,6 +75,7 @@ function AppRouter() {
           <Route path="/analytics" component={Analytics} />
           <Route path="/settings" component={Settings} />
           <Route path="/projects" component={Projects} />
+          <Route path="/dashboard" component={Dashboard} /> {/* ✅ Added */}
         </>
       ) : (
         <>
@@ -84,6 +85,7 @@ function AppRouter() {
           <Route path="/analytics" component={Analytics} />
           <Route path="/settings" component={Settings} />
           <Route path="/projects" component={Projects} />
+          <Route path="/dashboard" component={Dashboard} /> {/* ✅ Added */}
         </>
       )}
       <Route component={NotFound} />
