@@ -1,26 +1,42 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertDailyUpdateSchema, insertGoalSchema } from "@shared/schema";
+import { setupAuth, isAuthenticated } from "./replitAuth";
+import { insertDailyUpdateSchema, insertGoalSchema, insertProjectSchema, insertProjectUpdateSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  const DEFAULT_USER_ID = "default-user";
+  // Set up authentication middleware
+  await setupAuth(app);
 
-  // Daily Updates
-  app.get("/api/daily-updates", async (req, res) => {
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const updates = await storage.getDailyUpdates(DEFAULT_USER_ID);
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Daily Updates (protected)
+  app.get("/api/daily-updates", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const updates = await storage.getDailyUpdates(userId);
       res.json(updates);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch daily updates" });
     }
   });
 
-  app.get("/api/daily-updates/:date", async (req, res) => {
+  app.get("/api/daily-updates/:date", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { date } = req.params;
-      const update = await storage.getDailyUpdate(DEFAULT_USER_ID, date);
+      const update = await storage.getDailyUpdate(userId, date);
       if (!update) {
         res.status(404).json({ message: "Daily update not found" });
         return;
@@ -31,17 +47,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/daily-updates", async (req, res) => {
+  app.post("/api/daily-updates", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const updateData = insertDailyUpdateSchema.parse(req.body);
       
       // Check if update already exists for this date
-      const existing = await storage.getDailyUpdate(DEFAULT_USER_ID, updateData.date);
+      const existing = await storage.getDailyUpdate(userId, updateData.date);
       if (existing) {
-        const updated = await storage.updateDailyUpdate(DEFAULT_USER_ID, updateData.date, updateData);
+        const updated = await storage.updateDailyUpdate(userId, updateData.date, updateData);
         res.json(updated);
       } else {
-        const created = await storage.createDailyUpdate(DEFAULT_USER_ID, updateData);
+        const created = await storage.createDailyUpdate(userId, updateData);
         res.status(201).json(created);
       }
     } catch (error) {
@@ -53,21 +70,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Goals
-  app.get("/api/goals", async (req, res) => {
+  // Goals (protected)
+  app.get("/api/goals", isAuthenticated, async (req: any, res) => {
     try {
-      const goals = await storage.getGoals(DEFAULT_USER_ID);
+      const userId = req.user.claims.sub;
+      const goals = await storage.getGoals(userId);
       res.json(goals);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch goals" });
     }
   });
 
-  app.post("/api/goals", async (req, res) => {
+  app.post("/api/goals", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const goalData = insertGoalSchema.parse(req.body);
-      const created = await storage.createGoal(DEFAULT_USER_ID, goalData);
-      res.status(201).json(created);
+      const goal = await storage.createGoal(userId, goalData);
+      res.status(201).json(goal);
     } catch (error) {
       if (error instanceof z.ZodError) {
         res.status(400).json({ message: "Invalid data", errors: error.errors });
@@ -77,46 +96,131 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Activities
-  app.get("/api/activities", async (req, res) => {
+  // Activities (protected)
+  app.get("/api/activities", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
-      const activities = await storage.getActivities(DEFAULT_USER_ID, limit);
+      const activities = await storage.getActivities(userId, limit);
       res.json(activities);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch activities" });
     }
   });
 
-  // Analytics
-  app.get("/api/analytics/weekly", async (req, res) => {
+  // Projects (protected)
+  app.get("/api/projects", isAuthenticated, async (req: any, res) => {
     try {
-      const stats = await storage.getWeeklyStats(DEFAULT_USER_ID);
+      const userId = req.user.claims.sub;
+      const projects = await storage.getProjects(userId);
+      res.json(projects);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch projects" });
+    }
+  });
+
+  app.get("/api/projects/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const project = await storage.getProject(id);
+      if (!project) {
+        res.status(404).json({ message: "Project not found" });
+        return;
+      }
+      res.json(project);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch project" });
+    }
+  });
+
+  app.post("/api/projects", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const projectData = insertProjectSchema.parse(req.body);
+      const project = await storage.createProject(userId, projectData);
+      res.status(201).json(project);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid data", errors: error.errors });
+        return;
+      }
+      res.status(500).json({ message: "Failed to create project" });
+    }
+  });
+
+  app.put("/api/projects/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      const project = await storage.updateProject(id, updates);
+      res.json(project);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update project" });
+    }
+  });
+
+  // Project Updates (protected)
+  app.get("/api/projects/:id/updates", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updates = await storage.getProjectUpdates(id);
+      res.json(updates);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch project updates" });
+    }
+  });
+
+  app.post("/api/projects/:id/updates", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      const updateData = insertProjectUpdateSchema.parse({
+        ...req.body,
+        projectId: id
+      });
+      const update = await storage.createProjectUpdate(userId, updateData);
+      res.status(201).json(update);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid data", errors: error.errors });
+        return;
+      }
+      res.status(500).json({ message: "Failed to create project update" });
+    }
+  });
+
+  // Analytics (protected)
+  app.get("/api/analytics/weekly", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const stats = await storage.getWeeklyStats(userId);
       res.json(stats);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch weekly stats" });
     }
   });
 
-  app.get("/api/analytics/monthly", async (req, res) => {
+  app.get("/api/analytics/monthly", isAuthenticated, async (req: any, res) => {
     try {
-      const stats = await storage.getMonthlyStats(DEFAULT_USER_ID);
+      const userId = req.user.claims.sub;
+      const stats = await storage.getMonthlyStats(userId);
       res.json(stats);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch monthly stats" });
     }
   });
 
-  // Dashboard metrics
-  app.get("/api/dashboard/metrics", async (req, res) => {
+  // Dashboard metrics (protected)
+  app.get("/api/dashboard/metrics", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const today = new Date().toISOString().split('T')[0];
       const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
       
-      const todayUpdate = await storage.getDailyUpdate(DEFAULT_USER_ID, today);
-      const yesterdayUpdate = await storage.getDailyUpdate(DEFAULT_USER_ID, yesterday);
-      const monthlyStats = await storage.getMonthlyStats(DEFAULT_USER_ID);
-      const goals = await storage.getGoals(DEFAULT_USER_ID);
+      const todayUpdate = await storage.getDailyUpdate(userId, today);
+      const yesterdayUpdate = await storage.getDailyUpdate(userId, yesterday);
+      const monthlyStats = await storage.getMonthlyStats(userId);
+      const goals = await storage.getGoals(userId);
 
       const tasksCompleted = todayUpdate?.tasksCompleted || 0;
       const yesterdayTasks = yesterdayUpdate?.tasksCompleted || 0;
@@ -147,28 +251,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Export functionality
-  app.get("/api/export", async (req, res) => {
+  // Export functionality (protected)
+  app.get("/api/export", isAuthenticated, async (req: any, res) => {
     try {
-      const updates = await storage.getDailyUpdates(DEFAULT_USER_ID);
-      const goals = await storage.getGoals(DEFAULT_USER_ID);
-      const activities = await storage.getActivities(DEFAULT_USER_ID, 100);
+      const userId = req.user.claims.sub;
+      const updates = await storage.getDailyUpdates(userId);
+      const goals = await storage.getGoals(userId);
+      const activities = await storage.getActivities(userId, 100);
+      const projects = await storage.getProjects(userId);
 
       const exportData = {
         generatedAt: new Date().toISOString(),
-        dailyUpdates: updates,
-        goals,
-        activities,
+        userId,
         summary: {
-          totalDays: updates.length,
-          totalTasks: updates.reduce((sum, u) => sum + u.tasksCompleted, 0),
-          totalHours: Math.round(updates.reduce((sum, u) => sum + u.hoursWorked, 0) / 60 * 10) / 10,
-          activeGoals: goals.length
+          totalUpdates: updates.length,
+          totalGoals: goals.length,
+          totalActivities: activities.length,
+          totalProjects: projects.length
+        },
+        data: {
+          dailyUpdates: updates,
+          goals,
+          activities,
+          projects
         }
       };
 
       res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Content-Disposition', 'attachment; filename="daily-updates-export.json"');
+      res.setHeader('Content-Disposition', `attachment; filename="productivity-data-${new Date().toISOString().split('T')[0]}.json"`);
       res.json(exportData);
     } catch (error) {
       res.status(500).json({ message: "Failed to export data" });

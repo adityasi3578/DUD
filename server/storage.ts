@@ -1,12 +1,30 @@
-import { type User, type InsertUser, type DailyUpdate, type InsertDailyUpdate, type Goal, type InsertGoal, type Activity, type InsertActivity, users, dailyUpdates, goals, activities } from "@shared/schema";
+import { 
+  users, 
+  dailyUpdates, 
+  goals, 
+  activities, 
+  projects,
+  projectUpdates,
+  type User, 
+  type UpsertUser,
+  type DailyUpdate, 
+  type InsertDailyUpdate, 
+  type Goal, 
+  type InsertGoal, 
+  type Activity, 
+  type InsertActivity,
+  type Project,
+  type InsertProject,
+  type ProjectUpdate,
+  type InsertProjectUpdate
+} from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, gte } from "drizzle-orm";
+import { eq, desc, and, gte, lte, sql } from "drizzle-orm";
 
 export interface IStorage {
-  // User methods
+  // User methods (Replit Auth compatible)
   getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  upsertUser(user: UpsertUser): Promise<User>;
 
   // Daily update methods
   getDailyUpdate(userId: string, date: string): Promise<DailyUpdate | undefined>;
@@ -23,26 +41,39 @@ export interface IStorage {
   getActivities(userId: string, limit?: number): Promise<Activity[]>;
   createActivity(userId: string, activity: InsertActivity): Promise<Activity>;
 
+  // Project methods
+  getProjects(userId: string): Promise<Project[]>;
+  getProject(projectId: string): Promise<Project | undefined>;
+  createProject(userId: string, project: InsertProject): Promise<Project>;
+  updateProject(projectId: string, updates: Partial<InsertProject>): Promise<Project>;
+
+  // Project update methods
+  getProjectUpdates(projectId: string): Promise<ProjectUpdate[]>;
+  createProjectUpdate(userId: string, update: InsertProjectUpdate): Promise<ProjectUpdate>;
+
   // Analytics methods
   getWeeklyStats(userId: string): Promise<{ date: string; tasks: number; hours: number }[]>;
   getMonthlyStats(userId: string): Promise<{ tasks: number; hours: number; streak: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
+  // User methods for Replit Auth
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
+    return user;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user || undefined;
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
+  async upsertUser(userData: UpsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
-      .values(insertUser)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
       .returning();
     return user;
   }
@@ -146,6 +177,57 @@ export class DatabaseStorage implements IStorage {
     return newActivity;
   }
 
+  // Project methods
+  async getProjects(userId: string): Promise<Project[]> {
+    return await db
+      .select()
+      .from(projects)
+      .where(eq(projects.userId, userId))
+      .orderBy(desc(projects.createdAt));
+  }
+
+  async getProject(projectId: string): Promise<Project | undefined> {
+    const [project] = await db
+      .select()
+      .from(projects)
+      .where(eq(projects.id, projectId));
+    return project;
+  }
+
+  async createProject(userId: string, project: InsertProject): Promise<Project> {
+    const [newProject] = await db
+      .insert(projects)
+      .values({ ...project, userId })
+      .returning();
+    return newProject;
+  }
+
+  async updateProject(projectId: string, updates: Partial<InsertProject>): Promise<Project> {
+    const [updatedProject] = await db
+      .update(projects)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(projects.id, projectId))
+      .returning();
+    return updatedProject;
+  }
+
+  // Project update methods
+  async getProjectUpdates(projectId: string): Promise<ProjectUpdate[]> {
+    return await db
+      .select()
+      .from(projectUpdates)
+      .where(eq(projectUpdates.projectId, projectId))
+      .orderBy(desc(projectUpdates.createdAt));
+  }
+
+  async createProjectUpdate(userId: string, update: InsertProjectUpdate): Promise<ProjectUpdate> {
+    const [newUpdate] = await db
+      .insert(projectUpdates)
+      .values({ ...update, userId })
+      .returning();
+    return newUpdate;
+  }
+
   async getWeeklyStats(userId: string): Promise<{ date: string; tasks: number; hours: number }[]> {
     const last7Days = Array.from({ length: 7 }, (_, i) => {
       const date = new Date();
@@ -217,54 +299,5 @@ export class DatabaseStorage implements IStorage {
     };
   }
 }
-
-// Initialize storage and create default user
-async function initializeStorage() {
-  try {
-    // Check if default user exists
-    const [existingUser] = await db.select().from(users).where(eq(users.id, "default-user"));
-    
-    if (!existingUser) {
-      // Create default user
-      await db.insert(users).values({
-        id: "default-user",
-        username: "john.doe",
-        password: "password",
-        name: "John Doe",
-        email: "john@example.com"
-      });
-
-      // Create some default goals
-      await db.insert(goals).values([
-        {
-          userId: "default-user",
-          title: "Complete 50 tasks",
-          target: 50,
-          current: 38,
-          type: "tasks"
-        },
-        {
-          userId: "default-user",
-          title: "Exercise 5 days",
-          target: 5,
-          current: 3,
-          type: "exercise"
-        },
-        {
-          userId: "default-user",
-          title: "Read 2 hours",
-          target: 120,
-          current: 90,
-          type: "reading"
-        }
-      ]);
-    }
-  } catch (error) {
-    console.error("Error initializing storage:", error);
-  }
-}
-
-// Initialize the database
-initializeStorage();
 
 export const storage = new DatabaseStorage();
