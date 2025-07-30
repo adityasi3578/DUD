@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Router } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -16,7 +16,7 @@ import SignupPage from "@/pages/signup";
 import NotFound from "@/pages/not-found";
 import type { User } from "@shared/schema";
 
-function Router() {
+function AppRouter() {
   const { user, isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
@@ -94,8 +94,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Router />
+        <Router base="/DUD">
+          <Toaster />
+          <AppRouter />
+        </Router>
       </TooltipProvider>
     </QueryClientProvider>
   );
