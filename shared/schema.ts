@@ -30,13 +30,37 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  role: varchar("role", { enum: ["USER", "ADMIN"] }).default("USER").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Projects/Tickets table
+// Teams table
+export const teams = pgTable("teams", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  description: varchar("description"),
+  createdBy: varchar("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Team memberships table
+export const teamMemberships = pgTable("team_memberships", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  teamId: varchar("team_id").references(() => teams.id, { onDelete: "cascade" }).notNull(),
+  role: varchar("role", { enum: ["MEMBER", "LEAD"] }).default("MEMBER").notNull(),
+  status: varchar("status", { enum: ["PENDING", "ACTIVE", "INACTIVE"] }).default("PENDING").notNull(),
+  joinedAt: timestamp("joined_at").defaultNow(),
+}, (table) => ({
+  uniqueUserTeam: index("unique_user_team").on(table.userId, table.teamId),
+}));
+
+// Projects/Tickets table (now team-based)
 export const projects = pgTable("projects", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  teamId: varchar("team_id").references(() => teams.id, { onDelete: "cascade" }).notNull(),
   userId: varchar("user_id").notNull(),
   title: text("title").notNull(),
   description: text("description").default(""),
@@ -123,6 +147,18 @@ export const insertProjectSchema = createInsertSchema(projects).omit({
   updatedAt: true,
 });
 
+export const insertTeamSchema = createInsertSchema(teams).omit({
+  id: true,
+  createdBy: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTeamMembershipSchema = createInsertSchema(teamMemberships).omit({
+  id: true,
+  joinedAt: true,
+});
+
 export const insertProjectUpdateSchema = createInsertSchema(projectUpdates).omit({
   id: true,
   userId: true,
@@ -154,3 +190,9 @@ export type Goal = typeof goals.$inferSelect;
 
 export type InsertActivity = z.infer<typeof insertActivitySchema>;
 export type Activity = typeof activities.$inferSelect;
+
+export type InsertTeam = z.infer<typeof insertTeamSchema>;
+export type Team = typeof teams.$inferSelect;
+
+export type InsertTeamMembership = z.infer<typeof insertTeamMembershipSchema>;
+export type TeamMembership = typeof teamMemberships.$inferSelect;

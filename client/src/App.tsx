@@ -9,11 +9,14 @@ import Tasks from "@/pages/tasks";
 import Analytics from "@/pages/analytics";
 import Settings from "@/pages/settings";
 import Projects from "@/pages/projects";
+import AdminPanel from "@/pages/admin-panel";
+import TeamDashboard from "@/pages/team-dashboard";
 import Landing from "@/pages/landing";
 import NotFound from "@/pages/not-found";
+import type { User } from "@shared/schema";
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -23,13 +26,34 @@ function Router() {
     );
   }
 
+  if (!isAuthenticated) {
+    return (
+      <Switch>
+        <Route path="/" component={Landing} />
+        <Route component={NotFound} />
+      </Switch>
+    );
+  }
+
+  const userTyped = user as User;
+  const isAdmin = userTyped?.role === "ADMIN";
+
   return (
     <Switch>
-      {isLoading || !isAuthenticated ? (
-        <Route path="/" component={Landing} />
+      {isAdmin ? (
+        <>
+          <Route path="/" component={AdminPanel} />
+          <Route path="/admin" component={AdminPanel} />
+          <Route path="/team-dashboard" component={TeamDashboard} />
+          <Route path="/tasks" component={Tasks} />
+          <Route path="/analytics" component={Analytics} />
+          <Route path="/settings" component={Settings} />
+          <Route path="/projects" component={Projects} />
+        </>
       ) : (
         <>
-          <Route path="/" component={Dashboard} />
+          <Route path="/" component={TeamDashboard} />
+          <Route path="/team-dashboard" component={TeamDashboard} />
           <Route path="/tasks" component={Tasks} />
           <Route path="/analytics" component={Analytics} />
           <Route path="/settings" component={Settings} />

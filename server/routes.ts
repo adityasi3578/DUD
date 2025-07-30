@@ -285,6 +285,143 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin middleware
+  const isAdmin = async (req: any, res: any, next: any) => {
+    const userId = req.user?.claims?.sub;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    const user = await storage.getUser(userId);
+    if (!user || user.role !== "ADMIN") {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    
+    next();
+  };
+
+  // Admin routes
+  app.get("/api/admin/teams", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const teams = await storage.getAllTeams();
+      res.json(teams);
+    } catch (error) {
+      console.error("Error fetching teams:", error);
+      res.status(500).json({ message: "Failed to fetch teams" });
+    }
+  });
+
+  app.post("/api/admin/teams", isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const team = await storage.createTeam(userId, req.body);
+      res.json(team);
+    } catch (error) {
+      console.error("Error creating team:", error);
+      res.status(500).json({ message: "Failed to create team" });
+    }
+  });
+
+  app.get("/api/admin/users", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.get("/api/admin/memberships", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const memberships = await storage.getAllMemberships();
+      res.json(memberships);
+    } catch (error) {
+      console.error("Error fetching memberships:", error);
+      res.status(500).json({ message: "Failed to fetch memberships" });
+    }
+  });
+
+  app.patch("/api/admin/memberships/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      const membership = await storage.updateMembershipStatus(id, status);
+      res.json(membership);
+    } catch (error) {
+      console.error("Error updating membership:", error);
+      res.status(500).json({ message: "Failed to update membership" });
+    }
+  });
+
+  app.patch("/api/admin/users/:id/role", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { role } = req.body;
+      const user = await storage.updateUserRole(id, role);
+      res.json(user);
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      res.status(500).json({ message: "Failed to update user role" });
+    }
+  });
+
+  // User team routes
+  app.get("/api/user/teams", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const teams = await storage.getUserTeams(userId);
+      res.json(teams);
+    } catch (error) {
+      console.error("Error fetching user teams:", error);
+      res.status(500).json({ message: "Failed to fetch teams" });
+    }
+  });
+
+  app.get("/api/teams", isAuthenticated, async (req, res) => {
+    try {
+      const teams = await storage.getAllTeams();
+      res.json(teams);
+    } catch (error) {
+      console.error("Error fetching teams:", error);
+      res.status(500).json({ message: "Failed to fetch teams" });
+    }
+  });
+
+  app.get("/api/teams/:id/projects", isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const projects = await storage.getTeamProjects(id);
+      res.json(projects);
+    } catch (error) {
+      console.error("Error fetching team projects:", error);
+      res.status(500).json({ message: "Failed to fetch team projects" });
+    }
+  });
+
+  app.get("/api/teams/:id/members", isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const members = await storage.getTeamMembers(id);
+      res.json(members);
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+      res.status(500).json({ message: "Failed to fetch team members" });
+    }
+  });
+
+  app.post("/api/user/join-team", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { teamId } = req.body;
+      const membership = await storage.joinTeam(userId, teamId);
+      res.json(membership);
+    } catch (error) {
+      console.error("Error joining team:", error);
+      res.status(500).json({ message: "Failed to join team" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

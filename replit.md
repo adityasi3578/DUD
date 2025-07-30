@@ -2,7 +2,12 @@
 
 ## Overview
 
-This is a full-stack web application for tracking daily productivity updates. The application allows users to log their daily activities including tasks completed, hours worked, mood, and notes. It provides a dashboard with analytics, goal tracking, and activity feeds to help users monitor their productivity over time.
+This is a full-stack web application for tracking daily productivity updates with comprehensive role-based access control and team management functionality. The application supports two user types:
+
+- **ADMIN users**: Get direct access to an admin panel for creating/managing teams and users, with full system access
+- **USER users**: Access team-based dashboards with team switching functionality, can request to join multiple teams
+
+The system enables team collaboration, project tracking, and progress monitoring with role-based permissions and multi-team support.
 
 ## User Preferences
 
@@ -36,9 +41,13 @@ The application follows a modern full-stack architecture with:
 - **Development Tools**: Hot reload with tsx, request logging middleware
 
 ### Database Schema
-The application uses four main entities:
-- **Users**: Basic user information and authentication
-- **Daily Updates**: Core tracking data (tasks, hours, mood, notes)
+The application uses a comprehensive schema with role-based access control:
+- **Users**: User information with role field (USER/ADMIN) and authentication
+- **Teams**: Team management with descriptions and created by tracking
+- **Team Memberships**: Join requests and active memberships with status tracking
+- **Projects**: Team-based project management with priorities and status
+- **Project Updates**: Progress tracking and collaboration within teams
+- **Daily Updates**: Individual user tracking data (tasks, hours, mood, notes)
 - **Goals**: User-defined productivity goals with progress tracking
 - **Activities**: Activity feed for user actions and achievements
 
