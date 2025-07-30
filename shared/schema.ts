@@ -59,7 +59,7 @@ export const teamMemberships = pgTable("team_memberships", {
   uniqueUserTeam: index("unique_user_team").on(table.userId, table.teamId),
 }));
 
-// Projects/Tickets table (now team-based)
+// Projects table (team-based)
 export const projects = pgTable("projects", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   teamId: varchar("team_id").references(() => teams.id, { onDelete: "cascade" }).notNull(),
