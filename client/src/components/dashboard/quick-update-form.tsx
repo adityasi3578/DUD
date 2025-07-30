@@ -50,7 +50,7 @@ export function QuickUpdateForm() {
 
   const createUpdateMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const response = await apiRequest("POST", "/api/daily-updates", {
+      const response = await apiRequest("/api/daily-updates", "POST", {
         ...data,
         hoursWorked: Math.round(data.hoursWorked * 60), // Convert to minutes
         mood: selectedMood,

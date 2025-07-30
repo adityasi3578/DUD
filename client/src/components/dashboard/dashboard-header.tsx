@@ -13,7 +13,7 @@ export function DashboardHeader() {
 
   const handleExport = async () => {
     try {
-      const response = await apiRequest("GET", "/api/export");
+      const response = await apiRequest("/api/export", "GET");
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
