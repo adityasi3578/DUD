@@ -1,5 +1,5 @@
 // API Configuration
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://your-railway-app.railway.app';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://dud-backend.onrender.com';
 
 // Helper function to build API URLs
 export function buildApiUrl(path: string): string {

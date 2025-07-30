@@ -1,0 +1,13 @@
+{
+  "name": "dud-backend",
+  "version": "1.0.0",
+  "description": "DUD Dashboard Backend",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "npm run build:server",
+    "start": "node dist/index.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+} 
