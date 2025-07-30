@@ -1,5 +1,6 @@
-import { type User, type InsertUser, type DailyUpdate, type InsertDailyUpdate, type Goal, type InsertGoal, type Activity, type InsertActivity } from "@shared/schema";
-import { randomUUID } from "crypto";
+import { type User, type InsertUser, type DailyUpdate, type InsertDailyUpdate, type Goal, type InsertGoal, type Activity, type InsertActivity, users, dailyUpdates, goals, activities } from "@shared/schema";
+import { db } from "./db";
+import { eq, desc, and, gte } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -27,141 +28,83 @@ export interface IStorage {
   getMonthlyStats(userId: string): Promise<{ tasks: number; hours: number; streak: number }>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-  private dailyUpdates: Map<string, DailyUpdate>;
-  private goals: Map<string, Goal>;
-  private activities: Map<string, Activity>;
-
-  constructor() {
-    this.users = new Map();
-    this.dailyUpdates = new Map();
-    this.goals = new Map();
-    this.activities = new Map();
-
-    // Create a default user for demo purposes
-    const defaultUser: User = {
-      id: "default-user",
-      username: "john.doe",
-      password: "password",
-      name: "John Doe",
-      email: "john@example.com"
-    };
-    this.users.set(defaultUser.id, defaultUser);
-
-    // Create some default goals
-    const defaultGoals: Goal[] = [
-      {
-        id: randomUUID(),
-        userId: defaultUser.id,
-        title: "Complete 50 tasks",
-        target: 50,
-        current: 38,
-        type: "tasks",
-        isActive: true,
-        createdAt: new Date()
-      },
-      {
-        id: randomUUID(),
-        userId: defaultUser.id,
-        title: "Exercise 5 days",
-        target: 5,
-        current: 3,
-        type: "exercise",
-        isActive: true,
-        createdAt: new Date()
-      },
-      {
-        id: randomUUID(),
-        userId: defaultUser.id,
-        title: "Read 2 hours",
-        target: 120,
-        current: 90,
-        type: "reading",
-        isActive: true,
-        createdAt: new Date()
-      }
-    ];
-
-    defaultGoals.forEach(goal => this.goals.set(goal.id, goal));
-  }
-
+export class DatabaseStorage implements IStorage {
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
     return user;
   }
 
   async getDailyUpdate(userId: string, date: string): Promise<DailyUpdate | undefined> {
-    return Array.from(this.dailyUpdates.values()).find(
-      update => update.userId === userId && update.date === date
-    );
+    const [update] = await db
+      .select()
+      .from(dailyUpdates)
+      .where(and(eq(dailyUpdates.userId, userId), eq(dailyUpdates.date, date)));
+    return update || undefined;
   }
 
   async getDailyUpdates(userId: string): Promise<DailyUpdate[]> {
-    return Array.from(this.dailyUpdates.values())
-      .filter(update => update.userId === userId)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return await db
+      .select()
+      .from(dailyUpdates)
+      .where(eq(dailyUpdates.userId, userId))
+      .orderBy(desc(dailyUpdates.date));
   }
 
   async createDailyUpdate(userId: string, update: InsertDailyUpdate): Promise<DailyUpdate> {
-    const id = randomUUID();
-    const dailyUpdate: DailyUpdate = {
-      ...update,
-      id,
-      userId,
-      createdAt: new Date()
-    };
-    this.dailyUpdates.set(id, dailyUpdate);
+    const [dailyUpdate] = await db
+      .insert(dailyUpdates)
+      .values({ ...update, userId })
+      .returning();
 
     // Create activity
     await this.createActivity(userId, {
       type: "task_completed",
-      description: `Completed ${update.tasksCompleted} tasks`
+      description: `Completed ${update.tasksCompleted || 0} tasks`
     });
 
     return dailyUpdate;
   }
 
   async updateDailyUpdate(userId: string, date: string, update: Partial<InsertDailyUpdate>): Promise<DailyUpdate> {
-    const existing = await this.getDailyUpdate(userId, date);
-    if (!existing) {
+    const [updated] = await db
+      .update(dailyUpdates)
+      .set(update)
+      .where(and(eq(dailyUpdates.userId, userId), eq(dailyUpdates.date, date)))
+      .returning();
+
+    if (!updated) {
       throw new Error("Daily update not found");
     }
 
-    const updated: DailyUpdate = { ...existing, ...update };
-    this.dailyUpdates.set(existing.id, updated);
     return updated;
   }
 
   async getGoals(userId: string): Promise<Goal[]> {
-    return Array.from(this.goals.values())
-      .filter(goal => goal.userId === userId && goal.isActive)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return await db
+      .select()
+      .from(goals)
+      .where(and(eq(goals.userId, userId), eq(goals.isActive, true)))
+      .orderBy(desc(goals.createdAt));
   }
 
   async createGoal(userId: string, goal: InsertGoal): Promise<Goal> {
-    const id = randomUUID();
-    const newGoal: Goal = {
-      ...goal,
-      id,
-      userId,
-      current: 0,
-      isActive: true,
-      createdAt: new Date()
-    };
-    this.goals.set(id, newGoal);
+    const [newGoal] = await db
+      .insert(goals)
+      .values({ ...goal, userId })
+      .returning();
 
     // Create activity
     await this.createActivity(userId, {
@@ -173,42 +116,50 @@ export class MemStorage implements IStorage {
   }
 
   async updateGoal(goalId: string, updates: Partial<Goal>): Promise<Goal> {
-    const existing = this.goals.get(goalId);
-    if (!existing) {
+    const [updated] = await db
+      .update(goals)
+      .set(updates)
+      .where(eq(goals.id, goalId))
+      .returning();
+
+    if (!updated) {
       throw new Error("Goal not found");
     }
 
-    const updated: Goal = { ...existing, ...updates };
-    this.goals.set(goalId, updated);
     return updated;
   }
 
   async getActivities(userId: string, limit: number = 10): Promise<Activity[]> {
-    return Array.from(this.activities.values())
-      .filter(activity => activity.userId === userId)
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      .slice(0, limit);
+    return await db
+      .select()
+      .from(activities)
+      .where(eq(activities.userId, userId))
+      .orderBy(desc(activities.timestamp))
+      .limit(limit);
   }
 
   async createActivity(userId: string, activity: InsertActivity): Promise<Activity> {
-    const id = randomUUID();
-    const newActivity: Activity = {
-      ...activity,
-      id,
-      userId,
-      timestamp: new Date()
-    };
-    this.activities.set(id, newActivity);
+    const [newActivity] = await db
+      .insert(activities)
+      .values({ ...activity, userId })
+      .returning();
     return newActivity;
   }
 
   async getWeeklyStats(userId: string): Promise<{ date: string; tasks: number; hours: number }[]> {
-    const updates = await this.getDailyUpdates(userId);
     const last7Days = Array.from({ length: 7 }, (_, i) => {
       const date = new Date();
       date.setDate(date.getDate() - i);
       return date.toISOString().split('T')[0];
     }).reverse();
+
+    const updates = await db
+      .select()
+      .from(dailyUpdates)
+      .where(and(
+        eq(dailyUpdates.userId, userId),
+        gte(dailyUpdates.date, last7Days[0])
+      ));
 
     return last7Days.map(date => {
       const update = updates.find(u => u.date === date);
@@ -221,20 +172,31 @@ export class MemStorage implements IStorage {
   }
 
   async getMonthlyStats(userId: string): Promise<{ tasks: number; hours: number; streak: number }> {
-    const updates = await this.getDailyUpdates(userId);
     const thisMonth = new Date().toISOString().slice(0, 7);
     
-    const monthlyUpdates = updates.filter(u => u.date.startsWith(thisMonth));
+    const monthlyUpdates = await db
+      .select()
+      .from(dailyUpdates)
+      .where(and(
+        eq(dailyUpdates.userId, userId),
+        gte(dailyUpdates.date, thisMonth + '-01')
+      ));
+
     const totalTasks = monthlyUpdates.reduce((sum, u) => sum + u.tasksCompleted, 0);
     const totalHours = monthlyUpdates.reduce((sum, u) => sum + u.hoursWorked, 0);
 
     // Calculate current streak
+    const allUpdates = await db
+      .select()
+      .from(dailyUpdates)
+      .where(eq(dailyUpdates.userId, userId))
+      .orderBy(desc(dailyUpdates.date));
+
     let streak = 0;
-    const sortedUpdates = updates.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     const today = new Date().toISOString().split('T')[0];
     let currentDate = new Date(today);
 
-    for (const update of sortedUpdates) {
+    for (const update of allUpdates) {
       const updateDate = new Date(update.date);
       if (updateDate.toISOString().split('T')[0] === currentDate.toISOString().split('T')[0]) {
         if (update.tasksCompleted > 0) {
@@ -256,4 +218,53 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Initialize storage and create default user
+async function initializeStorage() {
+  try {
+    // Check if default user exists
+    const [existingUser] = await db.select().from(users).where(eq(users.id, "default-user"));
+    
+    if (!existingUser) {
+      // Create default user
+      await db.insert(users).values({
+        id: "default-user",
+        username: "john.doe",
+        password: "password",
+        name: "John Doe",
+        email: "john@example.com"
+      });
+
+      // Create some default goals
+      await db.insert(goals).values([
+        {
+          userId: "default-user",
+          title: "Complete 50 tasks",
+          target: 50,
+          current: 38,
+          type: "tasks"
+        },
+        {
+          userId: "default-user",
+          title: "Exercise 5 days",
+          target: 5,
+          current: 3,
+          type: "exercise"
+        },
+        {
+          userId: "default-user",
+          title: "Read 2 hours",
+          target: 120,
+          current: 90,
+          type: "reading"
+        }
+      ]);
+    }
+  } catch (error) {
+    console.error("Error initializing storage:", error);
+  }
+}
+
+// Initialize the database
+initializeStorage();
+
+export const storage = new DatabaseStorage();

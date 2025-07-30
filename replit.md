@@ -14,7 +14,7 @@ The application follows a modern full-stack architecture with:
 
 - **Frontend**: React with TypeScript using Vite as the build tool
 - **Backend**: Express.js server with TypeScript
-- **Database**: PostgreSQL with Drizzle ORM (currently using in-memory storage for development)
+- **Database**: PostgreSQL with Drizzle ORM (fully integrated with persistent storage)
 - **UI Framework**: shadcn/ui components with Radix UI primitives and Tailwind CSS
 - **State Management**: TanStack Query for server state management
 - **Routing**: Wouter for client-side routing
@@ -30,7 +30,7 @@ The application follows a modern full-stack architecture with:
 
 ### Backend Architecture
 - **API Design**: RESTful API with Express.js
-- **Data Layer**: Storage abstraction layer with interface-based design for easy database switching
+- **Data Layer**: PostgreSQL database with Drizzle ORM for type-safe database operations
 - **Validation**: Zod schemas shared between frontend and backend
 - **Error Handling**: Centralized error handling middleware
 - **Development Tools**: Hot reload with tsx, request logging middleware
@@ -76,7 +76,7 @@ The application uses four main entities:
 ### Development Environment
 - **Dev Server**: Vite dev server with HMR for frontend development
 - **Backend**: tsx with hot reload for server development
-- **Database**: Currently using in-memory storage, configured for PostgreSQL
+- **Database**: PostgreSQL database with full persistent storage integration
 
 ### Production Build
 - **Frontend**: Vite builds optimized static assets to `dist/public`
