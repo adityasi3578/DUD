@@ -32,6 +32,7 @@ function AppRouter() {
     return (
       <Switch>
         <Route path="/signup" component={SignupPage} />
+        <Route path="/signin" component={SigninPage} />
         <Route path="/" component={SigninPage} />
         <Route component={SigninPage} />
       </Switch>
