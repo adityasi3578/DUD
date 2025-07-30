@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import type { User } from "@shared/schema";
 
 const signinSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -20,6 +21,7 @@ type SigninForm = z.infer<typeof signinSchema>;
 
 export default function SigninPage() {
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
   
   const form = useForm<SigninForm>({
@@ -36,14 +38,20 @@ export default function SigninPage() {
         method: "POST",
         body: JSON.stringify(data),
       });
-      return response;
+      const user: User = await response.json();
+      return user;
     },
-    onSuccess: () => {
+    onSuccess: (user: User) => {
       toast({
         title: "Success",
         description: "You have been signed in successfully.",
       });
-      setLocation("/dashboard"); // ✅ updated to go to dashboard
+      queryClient.setQueryData(["/api/auth/user"], user);
+      if (user.role === "ADMIN") {
+        setLocation("/dashboard");
+      } else {
+        setLocation("/");
+      }
     },
     onError: (error: Error) => {
       toast({
