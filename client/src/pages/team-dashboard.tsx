@@ -38,10 +38,27 @@ export default function TeamDashboard() {
 
   // Get user's teams (different structure for admins vs users)
   const { data: userTeams = [], isLoading: userTeamsLoading } = useQuery<(TeamMembership & { team: Team })[]>({
-    queryKey: ["/api/user/teams"],
-    select: (data) => {
+    queryKey: isAdmin ? ["/api/admin/teams"] : ["/api/user/teams"],
+    select: (data: any) => {
+      console.log("Raw user teams data:", data);
       // Handle both admin and user team response formats
-      return Array.isArray(data) ? data : [];
+      if (!Array.isArray(data)) return [];
+      
+      if (isAdmin) {
+        // Admin gets teams directly, wrap them as memberships
+        return data.map(team => ({
+          id: `admin-${team.id}`,
+          userId: user?.id || "",
+          teamId: team.id,
+          role: "LEAD" as const,
+          status: "ACTIVE" as const,
+          joinedAt: team.createdAt,
+          team: team
+        }));
+      } else {
+        // Regular users get membership objects with nested team
+        return data;
+      }
     },
   });
 

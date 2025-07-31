@@ -40,11 +40,18 @@ export default function UserUpdates() {
   });
 
   // Get user's teams for the dropdown
-  const { data: userTeams = [] } = useQuery<(any & { team: Team })[]>({
+  const { data: userTeams = [], isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/user/teams"],
-    select: (data) => {
+    select: (data: any) => {
+      console.log("Raw teams data:", data);
       // Handle both admin and user team response formats
-      return Array.isArray(data) ? data.map(item => item.team || item) : [];
+      if (!Array.isArray(data)) return [];
+      return data.map(item => {
+        // User teams come with nested 'team' object, admin teams come directly
+        const team = item.team || item;
+        console.log("Transformed team:", team);
+        return team;
+      });
     },
   });
 
@@ -181,15 +188,21 @@ export default function UserUpdates() {
                           }}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select team" />
+                                <SelectValue placeholder={teamsLoading ? "Loading teams..." : userTeams.length === 0 ? "No teams available" : "Select team"} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {userTeams.map((team) => (
-                                <SelectItem key={team.id} value={team.id}>
-                                  {team.name}
-                                </SelectItem>
-                              ))}
+                              {teamsLoading ? (
+                                <SelectItem value="loading" disabled>Loading teams...</SelectItem>
+                              ) : userTeams.length === 0 ? (
+                                <SelectItem value="none" disabled>No teams available</SelectItem>
+                              ) : (
+                                userTeams.map((team) => (
+                                  <SelectItem key={team.id} value={team.id}>
+                                    {team.name}
+                                  </SelectItem>
+                                ))
+                              )}
                             </SelectContent>
                           </Select>
                           <FormMessage />
