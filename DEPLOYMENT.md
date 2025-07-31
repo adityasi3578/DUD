@@ -4,8 +4,8 @@ This guide will help you deploy your DUD Dashboard to GitHub Pages.
 
 ## Prerequisites
 
-1. Your code is pushed to a GitHub repository
-2. You have admin access to the repository
+1. Your code is pushed to a GitHub repository.
+2. You have admin access to the repository.
 
 ## Deployment Steps
 
