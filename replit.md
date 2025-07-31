@@ -9,6 +9,15 @@ This is a full-stack web application for tracking daily productivity updates wit
 
 The system enables team collaboration, project tracking, and progress monitoring with role-based permissions and multi-team support.
 
+## Recent Changes (January 2025)
+
+- Fixed GitHub Pages deployment workflow by adding required environment configuration
+- Resolved authentication issues with userId access in API endpoints
+- Fixed logout redirect to use proper signout endpoint instead of Replit auth
+- Successfully connected to external Neon PostgreSQL database
+- Added missing team management storage methods to prevent 500 errors
+- Updated API configuration to work with external infrastructure
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
