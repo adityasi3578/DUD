@@ -24,6 +24,10 @@ export default function AdminPanel() {
 
   const { data: teams = [], isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/admin/teams"],
+    select: (data) => {
+      // Ensure we always get an array of teams
+      return Array.isArray(data) ? data : [];
+    },
   });
 
   const { data: users = [], isLoading: usersLoading } = useQuery<User[]>({

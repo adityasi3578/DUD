@@ -30,15 +30,19 @@ export default function TeamDashboard() {
   const { toast } = useToast();
   
   // Check if user is admin
-  const isAdmin = (user as any)?.role === "ADMIN";
+  const isAdmin = user && 'role' in user && user.role === "ADMIN";
 
   useEffect(() => {
     document.title = "Team Dashboard - MyTools";
   }, []);
 
-  // Get user's teams (for users) or all teams (for admins)
+  // Get user's teams (different structure for admins vs users)
   const { data: userTeams = [], isLoading: userTeamsLoading } = useQuery<(TeamMembership & { team: Team })[]>({
-    queryKey: isAdmin ? ["/api/admin/teams"] : ["/api/user/teams"],
+    queryKey: ["/api/user/teams"],
+    select: (data) => {
+      // Handle both admin and user team response formats
+      return Array.isArray(data) ? data : [];
+    },
   });
 
   // Get all available teams for joining (users only)
@@ -60,9 +64,14 @@ export default function TeamDashboard() {
   });
 
   // Get team updates (user progress within team)
-  const { data: teamUpdates = [], isLoading: updatesLoading } = useQuery<(UserUpdate & { user: User, project?: Project })[]>({
+  const { data: teamUpdates = [], isLoading: updatesLoading, error: updatesError } = useQuery<(UserUpdate & { user: User, project?: Project })[]>({
     queryKey: ["/api/teams", selectedTeamId, "updates"],
     enabled: !!selectedTeamId,
+    retry: false,
+    select: (data) => {
+      // Handle empty or error responses gracefully
+      return Array.isArray(data) ? data : [];
+    },
   });
 
   // Get team metrics
@@ -195,6 +204,17 @@ export default function TeamDashboard() {
               )}
             </div>
 
+            {/* Debug Info */}
+            {import.meta.env.DEV && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded p-4 text-sm">
+                <p><strong>Debug Info:</strong></p>
+                <p>User Teams Count: {userTeams.length}</p>
+                <p>Active Teams Count: {activeTeams.length}</p>
+                <p>User Role: {user && 'role' in user ? user.role : 'Unknown'}</p>
+                <p>Selected Team ID: {selectedTeamId}</p>
+              </div>
+            )}
+
             {/* Teams Grid */}
             {activeTeams.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
@@ -204,16 +224,16 @@ export default function TeamDashboard() {
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg flex items-center gap-2">
                           <Users className="h-5 w-5" />
-                          {membership.team.name}
+                          {membership.team?.name || "Unknown Team"}
                         </CardTitle>
                         <Badge variant={membership.role === "LEAD" ? "default" : "secondary"}>
-                          {membership.role}
+                          {membership.role || "MEMBER"}
                         </Badge>
                       </div>
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
-                        {membership.team.description || "No description"}
+                        {membership.team?.description || "No description"}
                       </p>
                       <Button 
                         size="sm" 
