@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { authenticateUser, createUser } from "./auth";
-import { insertDailyUpdateSchema, insertGoalSchema, insertProjectSchema, insertProjectUpdateSchema } from "@shared/schema";
+import { insertDailyUpdateSchema, insertGoalSchema, insertProjectSchema, insertProjectUpdateSchema, insertUserUpdateSchema } from "@shared/schema";
 import { z } from "zod";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -517,6 +517,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error joining team:", error);
       res.status(500).json({ message: "Failed to join team" });
+    }
+  });
+
+  // User Updates routes
+  app.get("/api/user-updates", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const updates = await storage.getUserUpdates(userId);
+      res.json(updates);
+    } catch (error) {
+      console.error("Error fetching user updates:", error);
+      res.status(500).json({ message: "Failed to fetch updates" });
+    }
+  });
+
+  app.post("/api/user-updates", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const validatedData = insertUserUpdateSchema.parse(req.body);
+      const update = await storage.createUserUpdate(userId, validatedData);
+      res.json(update);
+    } catch (error) {
+      console.error("Error creating user update:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create update" });
     }
   });
 

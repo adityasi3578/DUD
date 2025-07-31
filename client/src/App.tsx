@@ -12,6 +12,7 @@ import Settings from "@/pages/settings";
 import Projects from "@/pages/projects";
 import AdminPanel from "@/pages/admin-panel";
 import TeamDashboard from "@/pages/team-dashboard";
+import UserUpdates from "@/pages/user-updates";
 import SigninPage from "@/pages/signin";
 import SignupPage from "@/pages/signup";
 import NotFound from "@/pages/not-found";
@@ -77,7 +78,7 @@ function AppRouter() {
           <Route path="/analytics" component={Analytics} />
           <Route path="/settings" component={Settings} />
           <Route path="/projects" component={Projects} />
-          <Route path="/dashboard" component={Dashboard} /> {/* ✅ Added */}
+          <Route path="/user-updates" component={UserUpdates} />
         </>
       ) : (
         <>
@@ -88,7 +89,7 @@ function AppRouter() {
           <Route path="/analytics" component={Analytics} />
           <Route path="/settings" component={Settings} />
           <Route path="/projects" component={Projects} />
-          <Route path="/dashboard" component={Dashboard} /> {/* ✅ Added */}
+          <Route path="/user-updates" component={UserUpdates} />
         </>
       )}
       <Route component={NotFound} />

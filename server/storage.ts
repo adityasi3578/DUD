@@ -7,6 +7,7 @@ import {
   activities, 
   projects,
   projectUpdates,
+  userUpdates,
   type User, 
   type InsertUser,
   type Team,
@@ -22,7 +23,9 @@ import {
   type Project,
   type InsertProject,
   type ProjectUpdate,
-  type InsertProjectUpdate
+  type InsertProjectUpdate,
+  type UserUpdate,
+  type InsertUserUpdate
 } from "@shared/schema";
 import { db } from "./db";
 import { memStorage } from "./mem-storage";
@@ -73,6 +76,11 @@ export interface IStorage {
   updateMembershipStatus(membershipId: string, status: string): Promise<TeamMembership>;
   getUserTeams(userId: string): Promise<Team[]>;
   getTeamProjects(teamId: string): Promise<Project[]>;
+
+  // User update methods
+  getUserUpdates(userId: string): Promise<UserUpdate[]>;
+  createUserUpdate(userId: string, update: InsertUserUpdate): Promise<UserUpdate>;
+  updateUserUpdate(updateId: string, updates: Partial<InsertUserUpdate>): Promise<UserUpdate>;
   getTeamMembers(teamId: string): Promise<User[]>;
   joinTeam(userId: string, teamId: string): Promise<TeamMembership>;
 }
@@ -414,6 +422,26 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     return user;
+  }
+
+  async getUserUpdates(userId: string): Promise<UserUpdate[]> {
+    return await db.select().from(userUpdates).where(eq(userUpdates.userId, userId)).orderBy(desc(userUpdates.createdAt));
+  }
+
+  async createUserUpdate(userId: string, update: InsertUserUpdate): Promise<UserUpdate> {
+    const [created] = await db.insert(userUpdates).values({
+      ...update,
+      userId,
+    }).returning();
+    return created;
+  }
+
+  async updateUserUpdate(updateId: string, updates: Partial<InsertUserUpdate>): Promise<UserUpdate> {
+    const [updated] = await db.update(userUpdates)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(userUpdates.id, updateId))
+      .returning();
+    return updated;
   }
 }
 

@@ -1,4 +1,4 @@
-import { BarChart3, Target, Clock, Settings, Zap, FolderOpen, Users, Shield } from "lucide-react";
+import { BarChart3, Target, Clock, Settings, Zap, FolderOpen, Users, Shield, FileText } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { UserPanel } from "./user-panel";
 import { useAuth } from "@/hooks/useAuth";
@@ -137,6 +137,19 @@ export function Sidebar() {
             >
               <FolderOpen className="w-5 h-5" />
               <span>Projects</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/user-updates"
+              className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                isActive('/user-updates') 
+                  ? 'bg-primary/10 text-primary font-medium' 
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              <FileText className="w-5 h-5" />
+              <span>My Updates</span>
             </Link>
           </li>
           <li>

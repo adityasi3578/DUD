@@ -45,7 +45,7 @@ export default function Settings() {
     formState: { errors, isDirty },
   } = useForm<SettingsFormData>({
     defaultValues: {
-      name: user?.name || "",
+      name: user ? `${(user as any).firstName || ''} ${(user as any).lastName || ''}`.trim() : "",
       email: user?.email || "",
       timezone: "America/New_York",
       notifications: {
@@ -63,8 +63,8 @@ export default function Settings() {
   // Update form values when user data changes
   useEffect(() => {
     if (user) {
-      setValue("name", user.name || "");
-      setValue("email", user.email || "");
+      setValue("name", `${(user as any).firstName || ''} ${(user as any).lastName || ''}`.trim());
+      setValue("email", user.email);
     }
   }, [user, setValue]);
 
