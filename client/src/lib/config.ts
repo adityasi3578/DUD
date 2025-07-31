@@ -10,7 +10,7 @@ export function buildApiUrl(path: string): string {
     return path.startsWith('/') ? path : `/${path}`;
   }
   
-  // Remove leading slash if present for production
+  // Production: Use full Render backend URL
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
   return `${API_BASE_URL}/${cleanPath}`;
 } 
