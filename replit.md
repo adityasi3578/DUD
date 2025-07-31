@@ -13,6 +13,12 @@ The system enables team collaboration, project tracking, and progress monitoring
 
 Preferred communication style: Simple, everyday language.
 
+## External Infrastructure
+
+- **Database**: Neon PostgreSQL - postgresql://neondb_owner:npg_LoDIFbqsHE72@ep-little-poetry-a1gtq6u6-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+- **Backend**: Render.com - https://dud-backend-48y7.onrender.com (Service ID: srv-d2519r95pdvs73ccghng)
+- **Frontend**: GitHub Pages - https://adityasi3578.github.io/DUD
+
 ## System Architecture
 
 The application follows a modern full-stack architecture with:
