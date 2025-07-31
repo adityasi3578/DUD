@@ -110,7 +110,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Daily Updates (protected)
   app.get("/api/daily-updates", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.userId;
       const updates = await storage.getDailyUpdates(userId);
       res.json(updates);
     } catch (error) {
@@ -120,7 +120,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/daily-updates/:date", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.userId;
       const { date } = req.params;
       const update = await storage.getDailyUpdate(userId, date);
       if (!update) {
@@ -135,7 +135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/daily-updates", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.userId;
       const updateData = insertDailyUpdateSchema.parse(req.body);
       
       // Check if update already exists for this date
@@ -159,7 +159,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Goals (protected)
   app.get("/api/goals", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.userId;
       const goals = await storage.getGoals(userId);
       res.json(goals);
     } catch (error) {
@@ -169,7 +169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/goals", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.userId;
       const goalData = insertGoalSchema.parse(req.body);
       const goal = await storage.createGoal(userId, goalData);
       res.status(201).json(goal);
@@ -185,7 +185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Activities (protected)
   app.get("/api/activities", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.userId;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
       const activities = await storage.getActivities(userId, limit);
       res.json(activities);
@@ -197,7 +197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Projects (protected)
   app.get("/api/projects", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.userId;
       const projects = await storage.getProjects(userId);
       res.json(projects);
     } catch (error) {
@@ -221,7 +221,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/projects", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.userId;
       const projectData = insertProjectSchema.parse(req.body);
       const project = await storage.createProject(userId, projectData);
       res.status(201).json(project);
@@ -258,7 +258,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/projects/:id/updates", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.userId;
       const { id } = req.params;
       const updateData = insertProjectUpdateSchema.parse({
         ...req.body,
@@ -278,7 +278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Analytics (protected)
   app.get("/api/analytics/weekly", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.userId;
       const stats = await storage.getWeeklyStats(userId);
       res.json(stats);
     } catch (error) {
@@ -288,7 +288,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/analytics/monthly", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.userId;
       const stats = await storage.getMonthlyStats(userId);
       res.json(stats);
     } catch (error) {
@@ -299,7 +299,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard metrics (protected)
   app.get("/api/dashboard/metrics", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.userId;
       const today = new Date().toISOString().split('T')[0];
       const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
       
@@ -340,7 +340,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Export functionality (protected)
   app.get("/api/export", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.userId;
       const updates = await storage.getDailyUpdates(userId);
       const goals = await storage.getGoals(userId);
       const activities = await storage.getActivities(userId, 100);

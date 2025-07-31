@@ -47,7 +47,15 @@ export function UserPanel() {
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={() => window.location.href = '/api/logout'}
+            onClick={async () => {
+              try {
+                await fetch('/api/auth/signout', { method: 'POST' });
+                window.location.href = '/';
+              } catch (error) {
+                console.error('Signout error:', error);
+                window.location.href = '/';
+              }
+            }}
             className="w-full"
           >
             <LogOut className="h-4 w-4 mr-2" />

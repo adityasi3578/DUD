@@ -64,6 +64,17 @@ export interface IStorage {
   // Analytics methods
   getWeeklyStats(userId: string): Promise<{ date: string; tasks: number; hours: number }[]>;
   getMonthlyStats(userId: string): Promise<{ tasks: number; hours: number; streak: number }>;
+
+  // Team management methods
+  getAllTeams(): Promise<Team[]>;
+  createTeam(userId: string, team: InsertTeam): Promise<Team>;
+  getAllUsers(): Promise<User[]>;
+  getAllMemberships(): Promise<TeamMembership[]>;
+  updateMembershipStatus(membershipId: string, status: string): Promise<TeamMembership>;
+  getUserTeams(userId: string): Promise<Team[]>;
+  getTeamProjects(teamId: string): Promise<Project[]>;
+  getTeamMembers(teamId: string): Promise<User[]>;
+  joinTeam(userId: string, teamId: string): Promise<TeamMembership>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -321,7 +332,7 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(teams).orderBy(desc(teams.createdAt));
   }
 
-  async getUserTeams(userId: string): Promise<(TeamMembership & { team: Team })[]> {
+  async getUserTeams(userId: string): Promise<Team[]> {
     const results = await db
       .select()
       .from(teamMemberships)
@@ -329,10 +340,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(teamMemberships.userId, userId))
       .orderBy(desc(teamMemberships.joinedAt));
     
-    return results.map(row => ({
-      ...row.team_memberships,
-      team: row.teams
-    }));
+    return results.map(row => row.teams);
   }
 
   async getTeamProjects(teamId: string): Promise<Project[]> {
@@ -343,7 +351,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(projects.createdAt));
   }
 
-  async getTeamMembers(teamId: string): Promise<(TeamMembership & { user: User })[]> {
+  async getTeamMembers(teamId: string): Promise<User[]> {
     const results = await db
       .select()
       .from(teamMemberships)
@@ -351,10 +359,7 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(teamMemberships.teamId, teamId), eq(teamMemberships.status, "ACTIVE")))
       .orderBy(desc(teamMemberships.joinedAt));
     
-    return results.map(row => ({
-      ...row.team_memberships,
-      user: row.users
-    }));
+    return results.map(row => row.users);
   }
 
   async createTeam(userId: string, team: InsertTeam): Promise<Team> {
