@@ -38,11 +38,34 @@ Once deployed, you can access your application at:
 
 ## Important Notes
 
+### Current GitHub Pages Routing Issue & Solution
+
+**Problem**: Direct URL access to routes like `/dashboard` shows "404 File not found"
+
+**Root Cause**: GitHub Pages doesn't handle Single Page Application (SPA) routing by default
+
+**Solution Applied**:
+1. ✅ **404.html Script**: Added SPA redirect script that converts GitHub Pages 404s into proper routes
+2. ✅ **Base Path Configuration**: Set correct `/DUD/` base path in vite.config.ts 
+3. ✅ **Build Process**: Automated copying of 404.html to build output
+4. ✅ **GitHub Actions**: Created proper deployment workflow
+5. ✅ **Route Handling**: Added URL reconstruction script in index.html
+
+**Manual Fix Required by Repository Owner**:
+1. **Enable GitHub Actions Deployment**:
+   - Go to repository Settings → Pages
+   - Change Source from "Deploy from a branch" to "GitHub Actions"
+2. **Push Updated Code**: This will trigger the new deployment workflow
+3. **Verify Deployment**: Check that 404.html exists in the deployed site
+
+**Expected Result**: After proper deployment, https://adityasi3578.github.io/DUD/dashboard should work correctly
+
 ### Client-Side Routing
 The application uses client-side routing with wouter. The configuration includes:
 - Base path set to `/DUD/` in `vite.config.ts`
-- Router configured with base `/DUD` in `App.tsx`
-- 404.html file for handling direct URL access
+- Router configured for GitHub Pages with SPA support
+- 404.html file for handling direct URL access with redirect script
+- URL reconstruction in index.html for proper routing
 
 ### API Endpoints
 Make sure your backend API is deployed and accessible. You may need to:
