@@ -1,0 +1,149 @@
+Current runner version: '2.326.0'
+Operating System
+Runner Image
+Runner Image Provisioner
+GITHUB_TOKEN Permissions
+Secret source: Actions
+Prepare workflow directory
+Prepare all required actions
+Getting action download info
+Download immutable action package 'actions/checkout@v4'
+Download immutable action package 'actions/setup-node@v4'
+Download immutable action package 'actions/configure-pages@v4'
+Download immutable action package 'actions/upload-pages-artifact@v3'
+Download immutable action package 'actions/deploy-pages@v4'
+Getting action download info
+Download immutable action package 'actions/upload-artifact@v4'
+Complete job name: build-and-deploy
+2s
+Run actions/checkout@v4
+Syncing repository: adityasi3578/DUD
+Getting Git version info
+Temporarily overriding HOME='/home/runner/work/_temp/c87dfca8-8c52-4dcd-877c-41e5bf9b6bf2' before making global git config changes
+Adding repository directory to the temporary git global config as a safe directory
+/usr/bin/git config --global --add safe.directory /home/runner/work/DUD/DUD
+Deleting the contents of '/home/runner/work/DUD/DUD'
+Initializing the repository
+Disabling automatic garbage collection
+Setting up auth
+Fetching the repository
+Determining the checkout info
+/usr/bin/git sparse-checkout disable
+/usr/bin/git config --local --unset-all extensions.worktreeConfig
+Checking out the ref
+/usr/bin/git log -1 --format=%H
+7b3835cf269771b398344498b8b6a7eafe8afc01
+6s
+Run actions/setup-node@v4
+Found in cache @ /opt/hostedtoolcache/node/18.20.8/x64
+Environment details
+/opt/hostedtoolcache/node/18.20.8/x64/bin/npm config get cache
+/home/runner/.npm
+Cache hit for: node-cache-Linux-x64-npm-93a8baff3d566c820ab5e7ea50de4756b082717a407e1fdca4424c4f57241c3e
+Received 84989135 of 84989135 (100.0%), 161.8 MBs/sec
+Cache Size: ~81 MB (84989135 B)
+/usr/bin/tar -xf /home/runner/work/_temp/908629e8-1f5e-469e-981d-81d51b201674/cache.tzst -P -C /home/runner/work/DUD/DUD --use-compress-program unzstd
+Cache restored successfully
+Cache restored from key: node-cache-Linux-x64-npm-93a8baff3d566c820ab5e7ea50de4756b082717a407e1fdca4424c4f57241c3e
+9s
+Run npm ci
+npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+
+added 503 packages, and audited 504 packages in 9s
+
+67 packages are looking for funding
+  run `npm fund` for details
+
+11 vulnerabilities (3 low, 8 moderate)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+7s
+Run npm run build:gh-pages
+
+> rest-express@1.0.0 build:gh-pages
+> vite build
+
+vite v5.4.19 building for production...
+transforming...
+Browserslist: browsers data (caniuse-lite) is 9 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+✓ 2646 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/public/index.html                   1.66 kB │ gzip:   0.85 kB
+../dist/public/assets/index-CvMfvPSU.css   67.06 kB │ gzip:  11.67 kB
+../dist/public/assets/index-BYdXKYXs.js   956.52 kB │ gzip: 271.28 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 7.01s
+0s
+Run ls -la dist/
+total 12
+drwxr-xr-x  3 runner docker 4096 Jul 31 09:30 .
+drwxr-xr-x 11 runner docker 4096 Jul 31 09:30 ..
+drwxr-xr-x  3 runner docker 4096 Jul 31 09:30 public
+1s
+Run actions/configure-pages@v4
+  with:
+    token: ***
+    enablement: false
+0s
+Run actions/upload-pages-artifact@v3
+Run echo ::group::Archive artifact
+Archive artifact
+Run actions/upload-artifact@v4
+With the provided path, there will be 1 file uploaded
+Artifact name is valid!
+Root directory input is valid!
+Beginning upload of artifact content to blob storage
+Uploaded bytes 284939
+Finished uploading artifact content to blob storage!
+SHA256 digest of uploaded artifact zip is c77830619a481d7cf741b452562a5a514bde5a3306634442a55cc1f308f75853
+Finalizing artifact upload
+Artifact github-pages.zip successfully finalized. Artifact ID 3656635666
+Artifact github-pages has been successfully uploaded! Final size is 284939 bytes. Artifact ID is 3656635666
+Artifact download URL: https://github.com/adityasi3578/DUD/actions/runs/16645280219/artifacts/3656635666
+6s
+Run actions/deploy-pages@v4
+Fetching artifact metadata for "github-pages" in this workflow run
+Found 1 artifact(s)
+Creating Pages deployment with payload:
+{
+	"artifact_id": 3656635666,
+	"pages_build_version": "7b3835cf269771b398344498b8b6a7eafe8afc01",
+	"oidc_token": "***"
+}
+Created deployment for 7b3835cf269771b398344498b8b6a7eafe8afc01, ID: 7b3835cf269771b398344498b8b6a7eafe8afc01
+Getting Pages deployment status...
+Reported success!
+0s
+Post job cleanup.
+Cache hit occurred on the primary key node-cache-Linux-x64-npm-93a8baff3d566c820ab5e7ea50de4756b082717a407e1fdca4424c4f57241c3e, not saving cache.
+1s
+Post job cleanup.
+/usr/bin/git version
+git version 2.50.1
+Temporarily overriding HOME='/home/runner/work/_temp/a289eaae-d08e-4a6a-a0ea-a26f8db0cf81' before making global git config changes
+Adding repository directory to the temporary git global config as a safe directory
+/usr/bin/git config --global --add safe.directory /home/runner/work/DUD/DUD
+/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+http.https://github.com/.extraheader
+/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+0s
+Evaluate and set environment url
+Evaluated environment url: https://adityasi3578.github.io/DUD/
+Cleaning up orphan processes

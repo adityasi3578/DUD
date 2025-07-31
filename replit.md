@@ -19,6 +19,7 @@ The system enables team collaboration, project tracking, and progress monitoring
 - Updated API configuration to work with external infrastructure
 - Added SPA routing support for GitHub Pages (404.html file) to fix direct URL access
 - Configured frontend to use Render backend API in production environment
+- Fixed GitHub Pages deployment to upload correct directory (dist/public instead of dist)
 
 ## User Preferences
 
