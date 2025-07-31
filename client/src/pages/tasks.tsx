@@ -103,15 +103,15 @@ export default function Tasks() {
     <div className="flex h-screen bg-slate-50">
       <Sidebar />
       <main className="flex-1 overflow-auto">
-        <header className="bg-white border-b border-slate-200 px-6 py-4">
-          <div className="flex items-center justify-between">
+        <header className="bg-white border-b border-slate-200 px-4 lg:px-6 py-4 pt-16 lg:pt-4">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
             <div>
-              <h2 className="text-2xl font-semibold text-slate-900">Tasks & Goals</h2>
-              <p className="text-slate-600 mt-1">Manage your goals and track progress</p>
+              <h2 className="text-xl lg:text-2xl font-semibold text-slate-900">Tasks & Goals</h2>
+              <p className="text-slate-600 mt-1 text-sm lg:text-base">Manage your goals and track progress</p>
             </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-primary hover:bg-primary/90">
+                <Button className="bg-primary hover:bg-primary/90 w-full lg:w-auto">
                   <Plus className="w-4 h-4 mr-2" />
                   Add Goal
                 </Button>

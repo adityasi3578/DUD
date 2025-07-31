@@ -111,15 +111,15 @@ export default function UserUpdates() {
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
       <Sidebar />
-      <div className="flex-1 p-6 space-y-6">
-        <div className="flex justify-between items-center">
+      <div className="flex-1 p-4 lg:p-6 pt-16 lg:pt-6 space-y-4 lg:space-y-6">
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center space-y-4 lg:space-y-0">
           <div>
-            <h1 className="text-3xl font-bold">My Work Updates</h1>
-            <p className="text-gray-600 dark:text-gray-300 mt-2">
+            <h1 className="text-2xl lg:text-3xl font-bold">My Work Updates</h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-1 lg:mt-2 text-sm lg:text-base">
               Track your daily work progress and share updates with your team
             </p>
           </div>
-          <Button onClick={() => setShowCreateForm(true)}>
+          <Button onClick={() => setShowCreateForm(true)} className="w-full lg:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Add Update
           </Button>
@@ -134,7 +134,7 @@ export default function UserUpdates() {
             <CardContent>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="title"
@@ -164,7 +164,7 @@ export default function UserUpdates() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                     <FormField
                       control={form.control}
                       name="teamId"
@@ -240,7 +240,7 @@ export default function UserUpdates() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="status"
@@ -308,17 +308,19 @@ export default function UserUpdates() {
                     )}
                   />
 
-                  <div className="flex justify-end space-x-2">
+                  <div className="flex flex-col lg:flex-row justify-end space-y-2 lg:space-y-0 lg:space-x-2">
                     <Button 
                       type="button" 
                       variant="outline" 
                       onClick={() => setShowCreateForm(false)}
+                      className="w-full lg:w-auto"
                     >
                       Cancel
                     </Button>
                     <Button 
                       type="submit" 
                       disabled={createUpdateMutation.isPending}
+                      className="w-full lg:w-auto"
                     >
                       {createUpdateMutation.isPending ? "Creating..." : "Create Update"}
                     </Button>
