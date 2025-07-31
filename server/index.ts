@@ -5,7 +5,9 @@ import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 app.use(cors({
-  origin: "https://adityasi3578.github.io",
+  origin: process.env.NODE_ENV === 'development' 
+    ? true 
+    : ["https://adityasi3578.github.io"],
   credentials: true
 }));
 app.use(express.json());
