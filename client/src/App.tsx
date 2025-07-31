@@ -71,6 +71,7 @@ function AppRouter() {
         <>
           <Route path="/" component={AdminPanel} />
           <Route path="/admin" component={AdminPanel} />
+          <Route path="/dashboard" component={Dashboard} />
           <Route path="/team-dashboard" component={TeamDashboard} />
           <Route path="/tasks" component={Tasks} />
           <Route path="/analytics" component={Analytics} />
@@ -81,6 +82,7 @@ function AppRouter() {
       ) : (
         <>
           <Route path="/" component={TeamDashboard} />
+          <Route path="/dashboard" component={Dashboard} />
           <Route path="/team-dashboard" component={TeamDashboard} />
           <Route path="/tasks" component={Tasks} />
           <Route path="/analytics" component={Analytics} />

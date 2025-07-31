@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Sidebar } from "@/components/dashboard/sidebar";
+import { useAuth } from "@/hooks/useAuth";
 
 interface SettingsFormData {
   name: string;
@@ -30,6 +31,7 @@ interface SettingsFormData {
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("profile");
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     document.title = "Settings - MyTools";
@@ -43,8 +45,8 @@ export default function Settings() {
     formState: { errors, isDirty },
   } = useForm<SettingsFormData>({
     defaultValues: {
-      name: "John Doe",
-      email: "john@example.com",
+      name: user?.name || "",
+      email: user?.email || "",
       timezone: "America/New_York",
       notifications: {
         email: true,
@@ -57,6 +59,14 @@ export default function Settings() {
       },
     },
   });
+
+  // Update form values when user data changes
+  useEffect(() => {
+    if (user) {
+      setValue("name", user.name || "");
+      setValue("email", user.email || "");
+    }
+  }, [user, setValue]);
 
   const notifications = watch("notifications");
   const privacy = watch("privacy");
