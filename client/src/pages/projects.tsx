@@ -102,15 +102,15 @@ export default function Projects() {
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
       <Sidebar />
-      <div className="flex-1 p-6 space-y-6">
-        <div className="flex justify-between items-center">
+      <div className="flex-1 p-4 lg:p-6 pt-16 lg:pt-6 space-y-4 lg:space-y-6">
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center space-y-4 lg:space-y-0">
           <div>
-            <h1 className="text-3xl font-bold">Projects</h1>
-            <p className="text-gray-600 dark:text-gray-300 mt-2">
+            <h1 className="text-2xl lg:text-3xl font-bold">Projects</h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-1 lg:mt-2 text-sm lg:text-base">
               Manage your projects and track progress
             </p>
           </div>
-          <Button onClick={() => setShowCreateForm(true)}>
+          <Button onClick={() => setShowCreateForm(true)} className="w-full lg:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             New Project
           </Button>
