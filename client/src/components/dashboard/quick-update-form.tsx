@@ -86,12 +86,12 @@ export function QuickUpdateForm() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Quick Daily Update</CardTitle>
+      <CardHeader className="pb-4">
+        <CardTitle className="text-lg lg:text-xl">Quick Daily Update</CardTitle>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <CardContent className="p-4 lg:p-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 lg:space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="tasksCompleted">Tasks Completed</Label>
               <Input
@@ -123,26 +123,25 @@ export function QuickUpdateForm() {
           </div>
 
           <div>
-            <Label>Mood Rating</Label>
-            <div className="flex space-x-2 mt-2">
+            <Label htmlFor="mood" className="block text-sm font-medium text-slate-700 mb-2">
+              How are you feeling?
+            </Label>
+            <div className="grid grid-cols-5 gap-2">
               {moodEmojis.map((mood) => (
                 <button
                   key={mood.value}
                   type="button"
                   onClick={() => setSelectedMood(mood.value)}
-                  className={`w-10 h-10 rounded-lg border-2 transition-colors hover:border-primary focus:outline-none focus:border-primary ${
+                  className={`p-2 lg:p-3 rounded-lg border-2 transition-all text-center mobile-touch-target ${
                     selectedMood === mood.value
-                      ? "border-primary bg-primary/10"
-                      : "border-slate-300"
+                      ? 'border-primary bg-primary/10'
+                      : 'border-slate-200 hover:border-slate-300'
                   }`}
                 >
-                  <span className="text-xl">{mood.emoji}</span>
+                  <div className="text-lg lg:text-2xl mb-1">{mood.emoji}</div>
+                  <div className="text-xs text-slate-600">{mood.label}</div>
                 </button>
               ))}
-            </div>
-            <div className="flex justify-between text-xs text-slate-500 mt-1">
-              <span>Bad</span>
-              <span>Great</span>
             </div>
           </div>
 
@@ -159,16 +158,16 @@ export function QuickUpdateForm() {
             )}
           </div>
 
-          <div className="flex space-x-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <Button 
               type="submit" 
-              className="flex-1" 
+              className="flex-1 mobile-touch-target" 
               disabled={createUpdateMutation.isPending}
             >
               <Save className="w-4 h-4 mr-2" />
               {createUpdateMutation.isPending ? "Saving..." : "Save Update"}
             </Button>
-            <Button type="button" variant="outline" onClick={handleClear}>
+            <Button type="button" variant="outline" onClick={handleClear} className="mobile-touch-target">
               <RotateCcw className="w-4 h-4 mr-2" />
               Clear
             </Button>

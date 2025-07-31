@@ -16,6 +16,7 @@ import UserUpdates from "@/pages/user-updates";
 import SigninPage from "@/pages/signin";
 import SignupPage from "@/pages/signup";
 import NotFound from "@/pages/not-found";
+import LandingPage from "@/pages/landing";
 import type { User } from "@shared/schema";
 
 function AppRouter() {
@@ -34,8 +35,9 @@ function AppRouter() {
       <Switch>
         <Route path="/signup" component={SignupPage} />
         <Route path="/signin" component={SigninPage} />
-        <Route path="/" component={SigninPage} />
-        <Route component={SigninPage} />
+        <Route path="/landing" component={LandingPage} />
+        <Route path="/" component={LandingPage} />
+        <Route component={LandingPage} />
       </Switch>
     );
   }

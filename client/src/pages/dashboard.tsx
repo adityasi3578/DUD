@@ -15,9 +15,9 @@ export default function Dashboard() {
   return (
     <div className="flex h-screen bg-slate-50">
       <Sidebar />
-      <main className="flex-1 overflow-auto lg:ml-0">
+      <main className="flex-1 overflow-auto">
         <DashboardHeader />
-        <div className="p-4 lg:p-6 pt-16 lg:pt-6">
+        <div className="p-4 lg:p-6">
           <MetricsGrid />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
             <div className="lg:col-span-2 space-y-4 lg:space-y-6">

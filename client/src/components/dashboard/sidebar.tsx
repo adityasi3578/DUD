@@ -17,15 +17,17 @@ export function Sidebar() {
     return location === path;
   };
 
+
+
   const SidebarContent = () => (
     <div className="w-64 bg-white border-r border-slate-200 flex flex-col h-full">
-      <div className="p-6 border-b border-slate-200">
+      <div className="p-4 lg:p-6 border-b border-slate-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <BarChart3 className="w-4 h-4 text-primary-foreground" />
             </div>
-            <h1 className="text-xl font-semibold text-slate-900">MyTools</h1>
+            <h1 className="text-lg lg:text-xl font-semibold text-slate-900">MyTools</h1>
           </div>
           <button
             onClick={() => setIsMobileMenuOpen(false)}

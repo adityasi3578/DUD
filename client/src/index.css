@@ -55,4 +55,37 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+  
+  /* Mobile-first responsive improvements */
+  @screen sm {
+    .mobile-menu-overlay {
+      @apply hidden;
+    }
+  }
+  
+  /* Touch targets for mobile */
+  .mobile-touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  /* Prevent zoom on input focus on iOS */
+  input[type="email"],
+  input[type="password"],
+  input[type="text"],
+  input[type="date"],
+  select,
+  textarea {
+    font-size: 16px;
+  }
+  
+  @screen lg {
+    input[type="email"],
+    input[type="password"], 
+    input[type="text"],
+    input[type="date"],
+    select,
+    textarea {
+      font-size: 14px;
+    }
+  }
 }

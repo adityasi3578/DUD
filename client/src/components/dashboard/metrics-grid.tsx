@@ -22,17 +22,17 @@ export function MetricsGrid() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
         {Array.from({ length: 4 }).map((_, i) => (
           <Card key={i} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-6">
+            <CardContent className="p-4 lg:p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
                   <Skeleton className="h-4 w-24" />
                   <Skeleton className="h-8 w-16" />
                   <Skeleton className="h-3 w-20" />
                 </div>
-                <Skeleton className="w-12 h-12 rounded-lg" />
+                <Skeleton className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg" />
               </div>
             </CardContent>
           </Card>
@@ -82,34 +82,36 @@ export function MetricsGrid() {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      {metricCards.map((metric, index) => (
-        <Card key={index} className="hover:shadow-md transition-shadow">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-600">{metric.title}</p>
-                <p className="text-2xl font-semibold text-slate-900 mt-1">{metric.value}</p>
-                
-                {metric.progress !== undefined ? (
-                  <div className="w-full mt-2">
-                    <Progress value={metric.progress} className="h-2" />
-                  </div>
-                ) : metric.change ? (
-                  <p className={`text-xs mt-1 flex items-center ${metric.changeColor}`}>
-                    {metric.change.includes('+') && <ArrowUp className="w-3 h-3 mr-1" />}
-                    <Clock className="w-3 h-3 mr-1" />
-                    {metric.change}
-                  </p>
-                ) : null}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
+      {metricCards.map((metric, index) => {
+        const Icon = metric.icon;
+        return (
+          <Card key={index} className="hover:shadow-md transition-shadow">
+            <CardContent className="p-4 lg:p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-2 flex-1 min-w-0">
+                  <p className="text-xs lg:text-sm font-medium text-slate-600 truncate">{metric.title}</p>
+                  <p className="text-xl lg:text-2xl font-semibold text-slate-900">{metric.value}</p>
+                  
+                  {metric.progress !== undefined ? (
+                    <div className="w-full">
+                      <Progress value={metric.progress} className="h-2" />
+                    </div>
+                  ) : metric.change ? (
+                    <p className={`text-xs flex items-center ${metric.changeColor}`}>
+                      {metric.change.includes('+') && <ArrowUp className="w-3 h-3 mr-1" />}
+                      {metric.change}
+                    </p>
+                  ) : null}
+                </div>
+                <div className={`w-10 h-10 lg:w-12 lg:h-12 ${metric.iconBg} rounded-lg flex items-center justify-center ml-3`}>
+                  <Icon className={`w-5 h-5 lg:w-6 lg:h-6 ${metric.iconColor}`} />
+                </div>
               </div>
-              <div className={`w-12 h-12 ${metric.iconBg} rounded-lg flex items-center justify-center`}>
-                <metric.icon className={`w-6 h-6 ${metric.iconColor}`} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }
