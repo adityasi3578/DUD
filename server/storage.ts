@@ -123,6 +123,15 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async updateUserRole(userId: string, role: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ role: role as "USER" | "ADMIN", updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
   async getDailyUpdate(userId: string, date: string): Promise<DailyUpdate | undefined> {
     const [update] = await db
       .select()
@@ -519,6 +528,4 @@ export class DatabaseStorage implements IStorage {
 
 }
 
-export const storage: IStorage = process.env.DATABASE_URL
-  ? new DatabaseStorage()
-  : memStorage;
+export const storage: IStorage = new DatabaseStorage();

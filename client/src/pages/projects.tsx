@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Clock, AlertCircle, CheckCircle } from "lucide-react";
+import { Plus, Clock, AlertCircle, CheckCircle, Users } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
-import type { Project, InsertProject } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
+import type { Project, InsertProject, Team, TeamMembership } from "@shared/schema";
 import { Sidebar } from "@/components/dashboard/sidebar";
 
 export default function Projects() {
@@ -22,9 +23,15 @@ export default function Projects() {
   });
 
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: projects = [], isLoading } = useQuery<Project[]>({
     queryKey: ["/api/projects"],
+  });
+
+  // Fetch user's teams for project creation
+  const { data: userTeams = [] } = useQuery<(TeamMembership & { team: Team })[]>({
+    queryKey: ["/api/user/teams"],
   });
 
   const createProjectMutation = useMutation({
@@ -39,6 +46,17 @@ export default function Projects() {
         status: "active",
         priority: "medium",
       });
+      toast({
+        title: "Success",
+        description: "Project created successfully!",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create project",
+        variant: "destructive",
+      });
     },
   });
 
@@ -50,9 +68,17 @@ export default function Projects() {
     },
   });
 
+
+
   const handleCreateProject = () => {
-    if (newProject.title.trim()) {
+    if (newProject.title.trim() && newProject.teamId.trim()) {
       createProjectMutation.mutate(newProject);
+    } else {
+      toast({
+        title: "Missing Information",
+        description: "Please provide both title and team",
+        variant: "destructive",
+      });
     }
   };
 
@@ -126,11 +152,31 @@ export default function Projects() {
               placeholder="Project title"
               value={newProject.title}
               onChange={(e) => setNewProject({ ...newProject, title: e.target.value })}
+              data-testid="input-project-title"
             />
+            <Select
+              value={newProject.teamId}
+              onValueChange={(teamId) => setNewProject({ ...newProject, teamId })}
+            >
+              <SelectTrigger data-testid="select-team">
+                <SelectValue placeholder="Select a team" />
+              </SelectTrigger>
+              <SelectContent>
+                {userTeams.map((membership) => (
+                  <SelectItem key={membership.team?.id} value={membership.team?.id || ""}>
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      {membership.team?.name}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Textarea
               placeholder="Project description"
               value={newProject.description || ""}
               onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
+              data-testid="textarea-project-description"
             />
             <div className="grid grid-cols-2 gap-4">
               <Select
@@ -162,7 +208,11 @@ export default function Projects() {
               </Select>
             </div>
             <div className="flex gap-2">
-              <Button onClick={handleCreateProject} disabled={createProjectMutation.isPending}>
+              <Button 
+                onClick={handleCreateProject} 
+                disabled={createProjectMutation.isPending}
+                data-testid="button-create-project"
+              >
                 {createProjectMutation.isPending ? "Creating..." : "Create Project"}
               </Button>
               <Button variant="outline" onClick={() => setShowCreateForm(false)}>
