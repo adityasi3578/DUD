@@ -1,14 +1,12 @@
-import { BarChart3, Target, Clock, Settings, Zap, FolderOpen, Users, Shield, FileText, Menu, X } from "lucide-react";
+import { BarChart3, Target, Clock, Settings, Zap, FolderOpen, Users, Shield, FileText } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { UserPanel } from "./user-panel";
 import { useAuth } from "@/hooks/useAuth";
-import { useState } from "react";
 import type { User } from "@shared/schema";
 
 export function Sidebar() {
   const [location] = useLocation();
   const { user } = useAuth();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const userTyped = user as User;
   const isAdmin = userTyped?.role === "ADMIN";
@@ -17,22 +15,14 @@ export function Sidebar() {
     return location === path;
   };
 
-  const SidebarContent = () => (
-    <div className="w-64 bg-white border-r border-slate-200 flex flex-col h-full">
+  return (
+    <aside className="w-64 bg-white border-r border-slate-200 flex flex-col">
       <div className="p-6 border-b border-slate-200">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <BarChart3 className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <h1 className="text-xl font-semibold text-slate-900">MyTools</h1>
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <BarChart3 className="w-4 h-4 text-primary-foreground" />
           </div>
-          <button
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="lg:hidden p-2 rounded-lg hover:bg-slate-100"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <h1 className="text-xl font-semibold text-slate-900">MyTools</h1>
         </div>
       </div>
 
@@ -181,40 +171,6 @@ export function Sidebar() {
       <div className="p-4 border-t border-slate-200">
         <UserPanel />
       </div>
-    </div>
-  );
-
-  return (
-    <>
-      {/* Mobile Menu Button */}
-      <button
-        onClick={() => setIsMobileMenuOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md border border-slate-200 hover:bg-slate-50"
-      >
-        <Menu className="w-5 h-5" />
-      </button>
-
-      {/* Mobile Overlay */}
-      {isMobileMenuOpen && (
-        <div 
-          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:block">
-        <SidebarContent />
-      </aside>
-
-      {/* Mobile Sidebar */}
-      <aside
-        className={`lg:hidden fixed left-0 top-0 z-50 h-full transform transition-transform duration-300 ease-in-out ${
-          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <SidebarContent />
-      </aside>
-    </>
+    </aside>
   );
 }
