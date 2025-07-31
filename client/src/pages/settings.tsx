@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { Sidebar } from "@/components/dashboard/sidebar";
 
 interface SettingsFormData {
   name: string;
@@ -113,100 +114,53 @@ export default function Settings() {
   ];
 
   return (
-    <div className="flex h-screen bg-slate-50">
-      <aside className="w-64 bg-white border-r border-slate-200 flex flex-col">
-        <div className="p-6 border-b border-slate-200">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <SettingsIcon className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <h1 className="text-xl font-semibold text-slate-900">Settings</h1>
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Sidebar />
+      <div className="flex-1 p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">Settings</h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-2">
+              Manage your account preferences and data
+            </p>
           </div>
+          {isDirty && (
+            <Button onClick={handleSubmit(onSubmit)}>
+              <Save className="w-4 h-4 mr-2" />
+              Save Changes
+            </Button>
+          )}
         </div>
 
-        <nav className="flex-1 p-4">
-          <ul className="space-y-2">
-            <li>
-              <a
-                href="/"
-                className="flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
-              >
-                <SettingsIcon className="w-5 h-5" />
-                <span>Dashboard</span>
-              </a>
-            </li>
-            <li>
-              <a
-                href="/tasks"
-                className="flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
-              >
-                <SettingsIcon className="w-5 h-5" />
-                <span>Tasks & Goals</span>
-              </a>
-            </li>
-            <li>
-              <a
-                href="/analytics"
-                className="flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
-              >
-                <SettingsIcon className="w-5 h-5" />
-                <span>Analytics</span>
-              </a>
-            </li>
-            <li>
-              <a
-                href="/settings"
-                className="flex items-center space-x-3 px-3 py-2 rounded-lg bg-primary/10 text-primary font-medium"
-              >
-                <SettingsIcon className="w-5 h-5" />
-                <span>Settings</span>
-              </a>
-            </li>
-          </ul>
-        </nav>
-      </aside>
-
-      <main className="flex-1 overflow-auto">
-        <header className="bg-white border-b border-slate-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold text-slate-900">Settings</h2>
-              <p className="text-slate-600 mt-1">Manage your account preferences and data</p>
-            </div>
-            {isDirty && (
-              <Button onClick={handleSubmit(onSubmit)} className="bg-primary hover:bg-primary/90">
-                <Save className="w-4 h-4 mr-2" />
-                Save Changes
-              </Button>
-            )}
-          </div>
-        </header>
-
-        <div className="flex">
+        <div className="flex gap-6">
           {/* Settings Tabs */}
-          <div className="w-64 bg-white border-r border-slate-200 min-h-full">
-            <nav className="p-4">
-              <ul className="space-y-1">
-                {tabs.map((tab) => {
-                  const IconComponent = tab.icon;
-                  return (
-                    <li key={tab.id}>
-                      <button
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors text-left ${
-                          activeTab === tab.id
-                            ? "bg-primary/10 text-primary font-medium"
-                            : "text-slate-600 hover:bg-slate-100"
-                        }`}
-                      >
-                        <IconComponent className="w-5 h-5" />
-                        <span>{tab.label}</span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </nav>
+          <div className="w-64">
+            <Card>
+              <CardContent className="p-4">
+                <nav>
+                  <ul className="space-y-1">
+                    {tabs.map((tab) => {
+                      const IconComponent = tab.icon;
+                      return (
+                        <li key={tab.id}>
+                          <button
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors text-left ${
+                              activeTab === tab.id
+                                ? "bg-primary/10 text-primary font-medium"
+                                : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                            }`}
+                          >
+                            <IconComponent className="w-5 h-5" />
+                            <span>{tab.label}</span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </nav>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Settings Content */}
@@ -464,7 +418,7 @@ export default function Settings() {
             </form>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

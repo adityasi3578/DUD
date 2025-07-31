@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { insertGoalSchema, type Goal } from "@shared/schema";
 import { z } from "zod";
+import { Sidebar } from "@/components/dashboard/sidebar";
 
 const formSchema = insertGoalSchema.extend({
   target: z.coerce.number().min(1).max(1000),
@@ -100,58 +101,7 @@ export default function Tasks() {
 
   return (
     <div className="flex h-screen bg-slate-50">
-      <aside className="w-64 bg-white border-r border-slate-200 flex flex-col">
-        <div className="p-6 border-b border-slate-200">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Target className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <h1 className="text-xl font-semibold text-slate-900">Tasks & Goals</h1>
-          </div>
-        </div>
-
-        <nav className="flex-1 p-4">
-          <ul className="space-y-2">
-            <li>
-              <a
-                href="/"
-                className="flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
-              >
-                <Target className="w-5 h-5" />
-                <span>Dashboard</span>
-              </a>
-            </li>
-            <li>
-              <a
-                href="/tasks"
-                className="flex items-center space-x-3 px-3 py-2 rounded-lg bg-primary/10 text-primary font-medium"
-              >
-                <CheckCircle className="w-5 h-5" />
-                <span>Tasks & Goals</span>
-              </a>
-            </li>
-            <li>
-              <a
-                href="/analytics"
-                className="flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
-              >
-                <Target className="w-5 h-5" />
-                <span>Analytics</span>
-              </a>
-            </li>
-            <li>
-              <a
-                href="/settings"
-                className="flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
-              >
-                <Target className="w-5 h-5" />
-                <span>Settings</span>
-              </a>
-            </li>
-          </ul>
-        </nav>
-      </aside>
-
+      <Sidebar />
       <main className="flex-1 overflow-auto">
         <header className="bg-white border-b border-slate-200 px-6 py-4">
           <div className="flex items-center justify-between">
@@ -302,14 +252,20 @@ export default function Tasks() {
                 );
               })
             ) : (
-              <div className="col-span-full text-center py-12">
-                <Target className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-slate-900 mb-2">No goals yet</h3>
-                <p className="text-slate-500 mb-4">Create your first goal to start tracking progress</p>
-                <Button onClick={() => setIsDialogOpen(true)}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Your First Goal
-                </Button>
+              <div className="col-span-full">
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <Target className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-slate-900 mb-2">No goals yet</h3>
+                    <p className="text-slate-600 mb-4">
+                      Create your first goal to start tracking your progress
+                    </p>
+                    <Button onClick={() => setIsDialogOpen(true)}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Your First Goal
+                    </Button>
+                  </CardContent>
+                </Card>
               </div>
             )}
           </div>

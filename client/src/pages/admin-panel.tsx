@@ -216,7 +216,7 @@ export default function AdminPanel() {
                         {team.description}
                       </p>
                       <p className="text-xs text-gray-500 mt-2">
-                        Created: {new Date(team.createdAt).toLocaleDateString()}
+                        Created: {team.createdAt ? new Date(team.createdAt).toLocaleDateString() : 'Unknown'}
                       </p>
                     </div>
                     <div className="flex gap-2">

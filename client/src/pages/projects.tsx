@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Clock, AlertCircle, CheckCircle } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import type { Project, InsertProject } from "@shared/schema";
+import { Sidebar } from "@/components/dashboard/sidebar";
 
 export default function Projects() {
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -88,23 +89,32 @@ export default function Projects() {
   };
 
   if (isLoading) {
-    return <div className="p-6">Loading projects...</div>;
+    return (
+      <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+        <Sidebar />
+        <div className="flex-1 p-6">
+          <div className="text-lg">Loading projects...</div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Projects</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-2">
-            Manage your projects and track progress
-          </p>
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Sidebar />
+      <div className="flex-1 p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">Projects</h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-2">
+              Manage your projects and track progress
+            </p>
+          </div>
+          <Button onClick={() => setShowCreateForm(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Project
+          </Button>
         </div>
-        <Button onClick={() => setShowCreateForm(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Project
-        </Button>
-      </div>
 
       {showCreateForm && (
         <Card>
@@ -219,7 +229,8 @@ export default function Projects() {
             </Button>
           </CardContent>
         </Card>
-      )}
+        )}
+      </div>
     </div>
   );
 }
