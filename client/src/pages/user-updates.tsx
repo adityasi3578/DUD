@@ -40,8 +40,12 @@ export default function UserUpdates() {
   });
 
   // Get user's teams for the dropdown
-  const { data: userTeams = [] } = useQuery<Team[]>({
+  const { data: userTeams = [] } = useQuery<(any & { team: Team })[]>({
     queryKey: ["/api/user/teams"],
+    select: (data) => {
+      // Handle both admin and user team response formats
+      return Array.isArray(data) ? data.map(item => item.team || item) : [];
+    },
   });
 
   // Get projects for selected team
