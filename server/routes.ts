@@ -464,6 +464,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Team routes
+  app.get("/api/teams", isAuthenticated, async (req: any, res) => {
+    try {
+      const teams = await storage.getAllTeams();
+      res.json(teams);
+    } catch (error) {
+      console.error("Error fetching teams:", error);
+      res.status(500).json({ message: "Failed to fetch teams" });
+    }
+  });
+
+  // Team projects route
+  app.get("/api/teams/:teamId/projects", isAuthenticated, async (req: any, res) => {
+    try {
+      const { teamId } = req.params;
+      const projects = await storage.getTeamProjects(teamId);
+      res.json(projects);
+    } catch (error) {
+      console.error("Error fetching team projects:", error);
+      res.status(500).json({ message: "Failed to fetch team projects" });
+    }
+  });
+
+  // Team members route
+  app.get("/api/teams/:teamId/members", isAuthenticated, async (req: any, res) => {
+    try {
+      const { teamId } = req.params;
+      const members = await storage.getTeamMembers(teamId);
+      res.json(members);
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+      res.status(500).json({ message: "Failed to fetch team members" });
+    }
+  });
+
+  // Team updates route
+  app.get("/api/teams/:teamId/updates", isAuthenticated, async (req: any, res) => {
+    try {
+      const { teamId } = req.params;
+      const updates = await storage.getTeamUpdates(teamId);
+      res.json(updates);
+    } catch (error) {
+      console.error("Error fetching team updates:", error);
+      res.status(500).json({ message: "Failed to fetch team updates" });
+    }
+  });
+
+  // Team metrics route
+  app.get("/api/teams/:teamId/metrics", isAuthenticated, async (req: any, res) => {
+    try {
+      const { teamId } = req.params;
+      const metrics = await storage.getTeamMetrics(teamId);
+      res.json(metrics);
+    } catch (error) {
+      console.error("Error fetching team metrics:", error);
+      res.status(500).json({ message: "Failed to fetch team metrics" });
+    }
+  });
+
   // User team routes
   app.get("/api/user/teams", isAuthenticated, async (req: any, res) => {
     try {
@@ -476,43 +535,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/teams", isAuthenticated, async (req, res) => {
-    try {
-      const teams = await storage.getAllTeams();
-      res.json(teams);
-    } catch (error) {
-      console.error("Error fetching teams:", error);
-      res.status(500).json({ message: "Failed to fetch teams" });
-    }
-  });
-
-  app.get("/api/teams/:id/projects", isAuthenticated, async (req, res) => {
-    try {
-      const { id } = req.params;
-      const projects = await storage.getTeamProjects(id);
-      res.json(projects);
-    } catch (error) {
-      console.error("Error fetching team projects:", error);
-      res.status(500).json({ message: "Failed to fetch team projects" });
-    }
-  });
-
-  app.get("/api/teams/:id/members", isAuthenticated, async (req, res) => {
-    try {
-      const { id } = req.params;
-      const members = await storage.getTeamMembers(id);
-      res.json(members);
-    } catch (error) {
-      console.error("Error fetching team members:", error);
-      res.status(500).json({ message: "Failed to fetch team members" });
-    }
-  });
-
   app.post("/api/user/join-team", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.session.userId;
       const { teamId } = req.body;
-      const membership = await storage.joinTeam(userId, teamId);
+      const membership = await storage.createTeamMembership(userId, teamId);
       res.json(membership);
     } catch (error) {
       console.error("Error joining team:", error);
