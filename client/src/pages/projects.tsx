@@ -14,6 +14,7 @@ export default function Projects() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newProject, setNewProject] = useState<InsertProject>({
     title: "",
+    teamId: "",
     description: "",
     status: "active",
     priority: "medium",
@@ -32,6 +33,7 @@ export default function Projects() {
       setShowCreateForm(false);
       setNewProject({
         title: "",
+        teamId: "",
         description: "",
         status: "active",
         priority: "medium",
@@ -117,7 +119,7 @@ export default function Projects() {
             />
             <Textarea
               placeholder="Project description"
-              value={newProject.description}
+              value={newProject.description || ""}
               onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
             />
             <div className="grid grid-cols-2 gap-4">

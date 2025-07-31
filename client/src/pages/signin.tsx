@@ -34,10 +34,7 @@ export default function SigninPage() {
 
   const signinMutation = useMutation({
     mutationFn: async (data: SigninForm) => {
-      const response = await apiRequest("/api/auth/signin", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest("/api/auth/signin", "POST", data);
       const user: User = await response.json();
       return user;
     },
