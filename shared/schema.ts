@@ -185,12 +185,6 @@ export type Project = typeof projects.$inferSelect;
 export type InsertProjectUpdate = z.infer<typeof insertProjectUpdateSchema>;
 export type ProjectUpdate = typeof projectUpdates.$inferSelect;
 
-export type InsertGoal = z.infer<typeof insertGoalSchema>;
-export type Goal = typeof goals.$inferSelect;
-
-export type InsertActivity = z.infer<typeof insertActivitySchema>;
-export type Activity = typeof activities.$inferSelect;
-
 export type InsertTeam = z.infer<typeof insertTeamSchema>;
 export type Team = typeof teams.$inferSelect;
 

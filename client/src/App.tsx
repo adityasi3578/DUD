@@ -98,7 +98,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Router base="/DUD">
+        <Router base={import.meta.env.DEV ? "/" : "/DUD"}>
           <Toaster />
           <AppRouter />
         </Router>

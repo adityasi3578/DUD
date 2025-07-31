@@ -89,7 +89,7 @@ export class DatabaseStorage implements IStorage {
   async updateUserStatus(userId: string, status: string): Promise<User> {
     const [user] = await db
       .update(users)
-      .set({ status, updatedAt: new Date() })
+      .set({ status: status as "PENDING" | "APPROVED" | "REJECTED", updatedAt: new Date() })
       .where(eq(users.id, userId))
       .returning();
     return user;
@@ -322,12 +322,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserTeams(userId: string): Promise<(TeamMembership & { team: Team })[]> {
-    return await db
+    const results = await db
       .select()
       .from(teamMemberships)
       .innerJoin(teams, eq(teamMemberships.teamId, teams.id))
       .where(eq(teamMemberships.userId, userId))
       .orderBy(desc(teamMemberships.joinedAt));
+    
+    return results.map(row => ({
+      ...row.team_memberships,
+      team: row.teams
+    }));
   }
 
   async getTeamProjects(teamId: string): Promise<Project[]> {
@@ -339,12 +344,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTeamMembers(teamId: string): Promise<(TeamMembership & { user: User })[]> {
-    return await db
+    const results = await db
       .select()
       .from(teamMemberships)
       .innerJoin(users, eq(teamMemberships.userId, users.id))
       .where(and(eq(teamMemberships.teamId, teamId), eq(teamMemberships.status, "ACTIVE")))
       .orderBy(desc(teamMemberships.joinedAt));
+    
+    return results.map(row => ({
+      ...row.team_memberships,
+      user: row.users
+    }));
   }
 
   async createTeam(userId: string, team: InsertTeam): Promise<Team> {
@@ -366,7 +376,7 @@ export class DatabaseStorage implements IStorage {
   async updateMembershipStatus(membershipId: string, status: string): Promise<TeamMembership> {
     const [membership] = await db
       .update(teamMemberships)
-      .set({ status })
+      .set({ status: status as "PENDING" | "ACTIVE" | "INACTIVE" })
       .where(eq(teamMemberships.id, membershipId))
       .returning();
     return membership;
@@ -378,18 +388,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllMemberships(): Promise<(TeamMembership & { user: User; team: Team })[]> {
-    return await db
+    const results = await db
       .select()
       .from(teamMemberships)
       .innerJoin(users, eq(teamMemberships.userId, users.id))
       .innerJoin(teams, eq(teamMemberships.teamId, teams.id))
       .orderBy(desc(teamMemberships.joinedAt));
+    
+    return results.map(row => ({
+      ...row.team_memberships,
+      user: row.users,
+      team: row.teams
+    }));
   }
 
   async updateUserRole(userId: string, role: string): Promise<User> {
     const [user] = await db
       .update(users)
-      .set({ role, updatedAt: new Date() })
+      .set({ role: role as "USER" | "ADMIN", updatedAt: new Date() })
       .where(eq(users.id, userId))
       .returning();
     return user;
