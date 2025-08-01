@@ -1,0 +1,41 @@
+9:05:55 AM [express] GET /api/admin/metrics 200 in 3500ms :: {"totalUsers":"3","totalTeams":"1","tot…
+9:06:23 AM [express] GET /api/auth/user 304 in 2443ms :: {"id":"2a8336c3-4c84-453d-a11e-e8b8ce9df1c1…
+9:06:24 AM [express] GET /api/admin/teams 304 in 647ms :: [{"id":"9fead981-3e4b-4750-9db5-8b8a1700d8…
+9:06:25 AM [express] GET /api/teams/9fead981-3e4b-4750-9db5-8b8a1700d86d/members 200 in 487ms :: [{"…
+9:06:26 AM [express] GET /api/teams/9fead981-3e4b-4750-9db5-8b8a1700d86d/updates 304 in 1518ms :: []
+9:06:26 AM [express] GET /api/teams/9fead981-3e4b-4750-9db5-8b8a1700d86d/projects 200 in 1469ms :: […
+9:06:28 AM [express] GET /api/teams/9fead981-3e4b-4750-9db5-8b8a1700d86d/metrics 200 in 2772ms :: {"…
+9:06:36 AM [express] GET /api/user/teams 200 in 490ms :: []
+9:06:36 AM [express] GET /api/user-updates 200 in 488ms :: []
+9:06:44 AM [express] GET /api/analytics/weekly 200 in 492ms :: [{"date":"2025-07-26","tasks":0,"hour…
+9:06:45 AM [express] GET /api/analytics/monthly 200 in 648ms :: {"tasks":0,"hours":0,"streak":0}
+9:06:51 AM [express] GET /api/projects 200 in 489ms :: []
+9:07:05 AM [express] GET /api/admin/projects 304 in 2588ms :: [{"id":"bfe6b363-c3fa-42ba-ac44-d07eed…
+9:07:05 AM [express] GET /api/admin/users 200 in 2592ms :: [{"id":"905fd7dd-147a-496e-b569-f711ca2f8…
+9:07:05 AM [express] GET /api/admin/recent-updates 304 in 2702ms :: []
+9:07:06 AM [express] GET /api/admin/metrics 304 in 3395ms :: {"totalUsers":"3","totalTeams":"1","tot…
+Error creating user update: error: insert or update on table "user_updates" violates foreign key constraint "user_updates_project_id_projects_id_fk"
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.createUserUpdate (file:///opt/render/project/src/dist/index.js:454:25)
+    at async file:///opt/render/project/src/dist/index.js:1112:22 {
+  length: 301,
+  severity: 'ERROR',
+  code: '23503',
+  detail: 'Key (project_id)=() is not present in table "projects".',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'user_updates',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'user_updates_project_id_projects_id_fk',
+  file: 'ri_triggers.c',
+  line: '2599',
+  routine: 'ri_ReportViolation'
+}
+9:13:02 AM [express] POST /api/user-updates 500 in 2495ms :: {"message":"Failed to create update"}

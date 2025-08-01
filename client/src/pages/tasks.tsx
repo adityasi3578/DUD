@@ -50,12 +50,12 @@ export default function Tasks() {
     defaultValues: {
       title: "",
       description: "",
-      ticketNumber: "",
+      ticketNumber: null,
       workHours: 0,
       status: "IN_PROGRESS",
       priority: "MEDIUM",
-      teamId: "",
-      projectId: "",
+      teamId: null,
+      projectId: null,
     },
   });
 
@@ -88,7 +88,17 @@ export default function Tasks() {
   const onSubmit = (data: FormData) => {
     console.log("Form submitted with data:", data);
     console.log("Form errors:", errors);
-    createTaskMutation.mutate(data);
+    
+    // Clean up the data - convert empty strings to null for optional fields
+    const cleanedData = {
+      ...data,
+      projectId: data.projectId?.trim() || null,
+      teamId: data.teamId?.trim() || null,
+      ticketNumber: data.ticketNumber?.trim() || null,
+    };
+    
+    console.log("Cleaned data:", cleanedData);
+    createTaskMutation.mutate(cleanedData);
   };
 
   const getStatusColor = (status: string) => {
