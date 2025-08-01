@@ -74,8 +74,8 @@ export const projects = pgTable("projects", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// User Updates table for tracking daily work updates
-export const userUpdates = pgTable("user_updates", {
+// Tasks table for managing individual tasks
+export const tasks = pgTable("tasks", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
   teamId: varchar("team_id").references(() => teams.id, { onDelete: "cascade" }),
@@ -83,7 +83,25 @@ export const userUpdates = pgTable("user_updates", {
   ticketNumber: varchar("ticket_number"),
   title: text("title").notNull(),
   description: text("description").notNull(),
-  workHours: integer("work_hours").default(0),
+  status: varchar("status", { enum: ["TODO", "IN_PROGRESS", "COMPLETED", "BLOCKED", "REVIEW"] }).default("TODO").notNull(),
+  priority: varchar("priority", { enum: ["LOW", "MEDIUM", "HIGH", "URGENT"] }).default("MEDIUM").notNull(),
+  estimatedHours: integer("estimated_hours").default(0),
+  actualHours: integer("actual_hours").default(0),
+  dueDate: timestamp("due_date"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// User Updates table for tracking daily work updates
+export const userUpdates = pgTable("user_updates", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  teamId: varchar("team_id").references(() => teams.id, { onDelete: "cascade" }),
+  projectId: varchar("project_id").references(() => projects.id, { onDelete: "cascade" }),
+  taskId: varchar("task_id").references(() => tasks.id, { onDelete: "cascade" }),
+  ticketNumber: varchar("ticket_number"),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
   status: varchar("status", { enum: ["IN_PROGRESS", "COMPLETED", "BLOCKED", "REVIEW"] }).default("IN_PROGRESS").notNull(),
   priority: varchar("priority", { enum: ["LOW", "MEDIUM", "HIGH", "URGENT"] }).default("MEDIUM").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -186,6 +204,14 @@ export const insertProjectUpdateSchema = createInsertSchema(projectUpdates).omit
   createdAt: true,
 });
 
+export const insertTaskSchema = createInsertSchema(tasks).omit({
+  id: true,
+  userId: true,
+  actualHours: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertUserUpdateSchema = createInsertSchema(userUpdates).omit({
   id: true,
   userId: true,
@@ -216,6 +242,9 @@ export type Team = typeof teams.$inferSelect;
 
 export type InsertTeamMembership = z.infer<typeof insertTeamMembershipSchema>;
 export type TeamMembership = typeof teamMemberships.$inferSelect;
+
+export type InsertTask = z.infer<typeof insertTaskSchema>;
+export type Task = typeof tasks.$inferSelect;
 
 export type InsertUserUpdate = z.infer<typeof insertUserUpdateSchema>;
 export type UserUpdate = typeof userUpdates.$inferSelect;

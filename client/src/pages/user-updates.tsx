@@ -15,12 +15,10 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Sidebar } from "@/components/dashboard/sidebar";
-import { insertUserUpdateSchema, type UserUpdate, type Team, type Project } from "@shared/schema";
+import { insertUserUpdateSchema, type UserUpdate, type Team, type Project, type Task } from "@shared/schema";
 import { z } from "zod";
 
-const createUpdateSchema = insertUserUpdateSchema.extend({
-  workHours: z.number().min(0).max(24),
-});
+const createUpdateSchema = insertUserUpdateSchema;
 
 type CreateUpdateData = z.infer<typeof createUpdateSchema>;
 
@@ -62,13 +60,18 @@ export default function UserUpdates() {
     enabled: !!selectedTeamId,
   });
 
+  // Get user's tasks for the dropdown
+  const { data: userTasks = [], isLoading: tasksLoading } = useQuery<Task[]>({
+    queryKey: ["/api/tasks"],
+  });
+
   const form = useForm<CreateUpdateData>({
     resolver: zodResolver(createUpdateSchema),
     defaultValues: {
       title: "",
       description: "",
       ticketNumber: "",
-      workHours: 0,
+      taskId: null,
       status: "IN_PROGRESS",
       priority: "MEDIUM",
     },
@@ -237,20 +240,30 @@ export default function UserUpdates() {
 
                     <FormField
                       control={form.control}
-                      name="workHours"
+                      name="taskId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Hours Worked</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              min="0" 
-                              max="24" 
-                              step="0.5"
-                              {...field}
-                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                            />
-                          </FormControl>
+                          <FormLabel>Task (Optional)</FormLabel>
+                          <Select onValueChange={field.onChange}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={tasksLoading ? "Loading tasks..." : userTasks.length === 0 ? "No tasks available" : "Select task"} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {tasksLoading ? (
+                                <SelectItem value="loading" disabled>Loading tasks...</SelectItem>
+                              ) : userTasks.length === 0 ? (
+                                <SelectItem value="none" disabled>No tasks available</SelectItem>
+                              ) : (
+                                userTasks.map((task) => (
+                                  <SelectItem key={task.id} value={task.id}>
+                                    {task.ticketNumber ? `${task.ticketNumber} - ${task.title}` : task.title}
+                                  </SelectItem>
+                                ))
+                              )}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -384,10 +397,10 @@ export default function UserUpdates() {
                           <Calendar className="h-4 w-4" />
                           <span>{new Date(update.createdAt).toLocaleDateString()}</span>
                         </div>
-                        {(update.workHours || 0) > 0 && (
+                        {update.taskId && (
                           <div className="flex items-center space-x-1">
-                            <Clock className="h-4 w-4" />
-                            <span>{update.workHours || 0}h</span>
+                            <Hash className="h-4 w-4" />
+                            <span>Task Linked</span>
                           </div>
                         )}
                         {update.ticketNumber && (

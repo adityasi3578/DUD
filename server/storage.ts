@@ -8,6 +8,7 @@ import {
   projects,
   projectUpdates,
   userUpdates,
+  tasks,
   type User, 
   type InsertUser,
   type Team,
@@ -25,7 +26,9 @@ import {
   type ProjectUpdate,
   type InsertProjectUpdate,
   type UserUpdate,
-  type InsertUserUpdate
+  type InsertUserUpdate,
+  type Task,
+  type InsertTask
 } from "@shared/schema";
 import { db } from "./db";
 import { memStorage } from "./mem-storage";
@@ -88,6 +91,13 @@ export interface IStorage {
   }>;
   createTeamMembership(userId: string, teamId: string): Promise<TeamMembership>;
 
+  // Task methods
+  getTasks(userId: string): Promise<Task[]>;
+  getTask(taskId: string): Promise<Task | undefined>;
+  createTask(userId: string, task: InsertTask): Promise<Task>;
+  updateTask(taskId: string, updates: Partial<InsertTask>): Promise<Task>;
+  getUserTasks(userId: string): Promise<(Task & { project?: Project })[]>;
+
   // User update methods
   getUserUpdates(userId: string): Promise<UserUpdate[]>;
   createUserUpdate(userId: string, update: InsertUserUpdate): Promise<UserUpdate>;
@@ -116,8 +126,7 @@ export interface IStorage {
     completionRate: number;
     averageTaskTime: number;
   }>;
-  getUserTasks(userId: string): Promise<(UserUpdate & { project?: Project })[]>;
-  getUserRecentTasks(userId: string): Promise<(UserUpdate & { project?: Project })[]>;
+  getUserRecentTasks(userId: string): Promise<(Task & { project?: Project })[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -564,18 +573,16 @@ export class DatabaseStorage implements IStorage {
   async getAdminMetrics(): Promise<{
     totalUsers: number;
     totalTeams: number;
-    totalTasks: number;
-    completedTasks: number;
     totalProjects: number;
-    completedProjects: number;
-    taskCompletionRate: number;
-    projectCompletionRate: number;
+    activeUsers: number;
+    pendingUsers: number;
+    completedTasks: number;
   }> {
     const usersResult = await db.select({ count: sql<number>`count(*)` }).from(users);
     const teamsResult = await db.select({ count: sql<number>`count(*)` }).from(teams);
     const projectsResult = await db.select({ count: sql<number>`count(*)` }).from(projects);
-    const tasksResult = await db.select({ count: sql<number>`count(*)` }).from(userUpdates);
-    const completedTasksResult = await db.select({ count: sql<number>`count(*)` }).from(userUpdates).where(eq(userUpdates.status, "COMPLETED"));
+    const tasksResult = await db.select({ count: sql<number>`count(*)` }).from(tasks);
+    const completedTasksResult = await db.select({ count: sql<number>`count(*)` }).from(tasks).where(eq(tasks.status, "COMPLETED"));
     const completedProjectsResult = await db.select({ count: sql<number>`count(*)` }).from(projects).where(eq(projects.status, "completed"));
 
     const totalTasks = tasksResult[0]?.count || 0;
@@ -586,15 +593,16 @@ export class DatabaseStorage implements IStorage {
     const taskCompletionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
     const projectCompletionRate = totalProjects > 0 ? Math.round((completedProjects / totalProjects) * 100) : 0;
 
+    const activeUsersResult = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.status, "APPROVED"));
+    const pendingUsersResult = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.status, "PENDING"));
+
     return {
       totalUsers: usersResult[0]?.count || 0,
       totalTeams: teamsResult[0]?.count || 0,
-      totalTasks,
+      totalProjects: totalProjects,
+      activeUsers: activeUsersResult[0]?.count || 0,
+      pendingUsers: pendingUsersResult[0]?.count || 0,
       completedTasks,
-      totalProjects,
-      completedProjects,
-      taskCompletionRate,
-      projectCompletionRate,
     };
   }
 
@@ -631,75 +639,114 @@ export class DatabaseStorage implements IStorage {
     completedTasks: number;
     inProgressTasks: number;
     blockedTasks: number;
-    totalProjects: number;
-    completedProjects: number;
-    taskCompletionRate: number;
-    projectCompletionRate: number;
+    totalHours: number;
+    todayHours: number;
+    completionRate: number;
+    averageTaskTime: number;
   }> {
     const userTasksResult = await db
       .select()
-      .from(userUpdates)
-      .where(eq(userUpdates.userId, userId));
-
-    const userProjectsResult = await db
-      .select()
-      .from(projects)
-      .where(eq(projects.userId, userId));
+      .from(tasks)
+      .where(eq(tasks.userId, userId));
 
     const totalTasks = userTasksResult.length;
     const completedTasks = userTasksResult.filter(t => t.status === "COMPLETED").length;
     const inProgressTasks = userTasksResult.filter(t => t.status === "IN_PROGRESS").length;
     const blockedTasks = userTasksResult.filter(t => t.status === "BLOCKED").length;
     
-    const totalProjects = userProjectsResult.length;
-    const completedProjects = userProjectsResult.filter(p => p.status === "completed").length;
+    const totalHours = userTasksResult.reduce((sum, task) => sum + (task.actualHours || 0), 0);
+    const todayHours = userTasksResult
+      .filter(task => {
+        const today = new Date().toISOString().split('T')[0];
+        const taskDate = task.updatedAt?.toISOString().split('T')[0];
+        return taskDate === today;
+      })
+      .reduce((sum, task) => sum + (task.actualHours || 0), 0);
     
-    const taskCompletionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-    const projectCompletionRate = totalProjects > 0 ? Math.round((completedProjects / totalProjects) * 100) : 0;
+    const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    const averageTaskTime = completedTasks > 0 ? Math.round(totalHours / completedTasks) : 0;
 
     return {
       totalTasks,
       completedTasks,
       inProgressTasks,
       blockedTasks,
-      totalProjects,
-      completedProjects,
-      taskCompletionRate,
-      projectCompletionRate,
+      totalHours,
+      todayHours,
+      completionRate,
+      averageTaskTime,
     };
   }
 
-  async getUserTasks(userId: string): Promise<(UserUpdate & { project?: Project })[]> {
+  // Task methods
+  async getTasks(userId: string): Promise<Task[]> {
+    return await db
+      .select()
+      .from(tasks)
+      .where(eq(tasks.userId, userId))
+      .orderBy(desc(tasks.createdAt));
+  }
+
+  async getTask(taskId: string): Promise<Task | undefined> {
+    const result = await db
+      .select()
+      .from(tasks)
+      .where(eq(tasks.id, taskId))
+      .limit(1);
+    
+    return result[0] || undefined;
+  }
+
+  async createTask(userId: string, task: InsertTask): Promise<Task> {
+    const result = await db
+      .insert(tasks)
+      .values({ ...task, userId })
+      .returning();
+    
+    return result[0];
+  }
+
+  async updateTask(taskId: string, updates: Partial<InsertTask>): Promise<Task> {
+    const result = await db
+      .update(tasks)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(tasks.id, taskId))
+      .returning();
+    
+    return result[0];
+  }
+
+  async getUserTasks(userId: string): Promise<(Task & { project?: Project })[]> {
     const results = await db
       .select({
-        update: userUpdates,
+        task: tasks,
         project: projects
       })
-      .from(userUpdates)
-      .leftJoin(projects, eq(userUpdates.projectId, projects.id))
-      .where(eq(userUpdates.userId, userId))
-      .orderBy(desc(userUpdates.createdAt));
+      .from(tasks)
+      .leftJoin(projects, eq(tasks.projectId, projects.id))
+      .where(eq(tasks.userId, userId))
+      .orderBy(desc(tasks.createdAt));
 
     return results.map(result => ({
-      ...result.update,
+      ...result.task,
       project: result.project || undefined
     }));
   }
 
-  async getUserRecentTasks(userId: string): Promise<(UserUpdate & { project?: Project })[]> {
+  async getUserRecentTasks(userId: string): Promise<(Task & { project?: Project })[]> {
     const results = await db
       .select({
-        update: userUpdates,
+        task: tasks,
         project: projects
       })
-      .from(userUpdates)
-      .leftJoin(projects, eq(userUpdates.projectId, projects.id))
-      .where(eq(userUpdates.userId, userId))
-      .orderBy(desc(userUpdates.updatedAt))
+      .from(tasks)
+      .leftJoin(projects, eq(tasks.projectId, projects.id))
+      .where(eq(tasks.userId, userId))
+      .orderBy(desc(tasks.updatedAt))
       .limit(5);
 
     return results.map(result => ({
-      ...result.update,
+      ...result.task,
       project: result.project || undefined
     }));
   }

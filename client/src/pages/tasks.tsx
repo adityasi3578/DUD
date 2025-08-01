@@ -11,13 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { insertUserUpdateSchema, type UserUpdate, type Team, type TeamMembership } from "@shared/schema";
+import { insertTaskSchema, type Task, type Team, type TeamMembership } from "@shared/schema";
 import { z } from "zod";
 import { Sidebar } from "@/components/dashboard/sidebar";
 
-const formSchema = insertUserUpdateSchema.extend({
-  workHours: z.coerce.number().min(0).max(24),
-});
+const formSchema = insertTaskSchema;
 
 type FormData = z.infer<typeof formSchema>;
 
@@ -30,8 +28,8 @@ export default function Tasks() {
     document.title = "Tasks & Goals - MyTools";
   }, []);
 
-  const { data: tasks, isLoading } = useQuery<UserUpdate[]>({
-    queryKey: ["/api/user-updates"],
+  const { data: tasks, isLoading } = useQuery<Task[]>({
+    queryKey: ["/api/tasks"],
   });
 
   // Get user's teams for task creation
@@ -51,8 +49,8 @@ export default function Tasks() {
       title: "",
       description: "",
       ticketNumber: null,
-      workHours: 0,
-      status: "IN_PROGRESS",
+      estimatedHours: 0,
+      status: "TODO",
       priority: "MEDIUM",
       teamId: null,
       projectId: null,
@@ -62,7 +60,7 @@ export default function Tasks() {
   const createTaskMutation = useMutation({
     mutationFn: async (data: FormData) => {
       console.log("Submitting task data:", data);
-      const response = await apiRequest("/api/user-updates", "POST", data);
+      const response = await apiRequest("/api/tasks", "POST", data);
       return response.json();
     },
     onSuccess: () => {
@@ -70,7 +68,7 @@ export default function Tasks() {
         title: "Task Created",
         description: "Your new task has been created successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/user-updates"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
       reset();
       setIsDialogOpen(false);
@@ -216,11 +214,12 @@ export default function Tasks() {
 
                     <div>
                       <Label htmlFor="status">Status</Label>
-                      <Select onValueChange={(value) => setValue("status", value as any)} defaultValue="IN_PROGRESS">
+                      <Select onValueChange={(value) => setValue("status", value as any)} defaultValue="TODO">
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="TODO">To Do</SelectItem>
                           <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
                           <SelectItem value="COMPLETED">Completed</SelectItem>
                           <SelectItem value="BLOCKED">Blocked</SelectItem>
@@ -231,18 +230,18 @@ export default function Tasks() {
                   </div>
 
                   <div>
-                    <Label htmlFor="workHours">Work Hours</Label>
+                    <Label htmlFor="estimatedHours">Estimated Hours</Label>
                     <Input
-                      id="workHours"
+                      id="estimatedHours"
                       type="number"
                       min="0"
-                      max="24"
+                      max="200"
                       step="0.5"
                       placeholder="8"
-                      {...register("workHours")}
+                      {...register("estimatedHours")}
                     />
-                    {errors.workHours && (
-                      <p className="text-sm text-red-500 mt-1">{errors.workHours.message}</p>
+                    {errors.estimatedHours && (
+                      <p className="text-sm text-red-500 mt-1">{errors.estimatedHours.message}</p>
                     )}
                   </div>
 

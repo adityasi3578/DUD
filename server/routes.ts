@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { authenticateUser, createUser } from "./auth";
-import { insertDailyUpdateSchema, insertGoalSchema, insertProjectSchema, insertProjectUpdateSchema, insertUserUpdateSchema } from "@shared/schema";
+import { insertDailyUpdateSchema, insertGoalSchema, insertProjectSchema, insertProjectUpdateSchema, insertUserUpdateSchema, insertTaskSchema } from "@shared/schema";
 import { z } from "zod";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -616,6 +616,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Task routes
+  app.get("/api/tasks", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const tasks = await storage.getTasks(userId);
+      res.json(tasks);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      res.status(500).json({ message: "Failed to fetch tasks" });
+    }
+  });
+
+  app.get("/api/tasks/user", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const tasks = await storage.getUserTasks(userId);
+      res.json(tasks);
+    } catch (error) {
+      console.error("Error fetching user tasks:", error);
+      res.status(500).json({ message: "Failed to fetch user tasks" });
+    }
+  });
+
+  app.post("/api/tasks", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      
+      // Clean the request body - convert empty strings to null for optional foreign keys
+      const cleanedBody = {
+        ...req.body,
+        teamId: req.body.teamId?.trim() || null,
+        projectId: req.body.projectId?.trim() || null,
+        ticketNumber: req.body.ticketNumber?.trim() || null,
+        dueDate: req.body.dueDate ? new Date(req.body.dueDate) : null,
+      };
+      
+      const validatedData = insertTaskSchema.parse(cleanedBody);
+      const task = await storage.createTask(userId, validatedData);
+      res.json(task);
+    } catch (error) {
+      console.error("Error creating task:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create task" });
+    }
+  });
+
+  app.patch("/api/tasks/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.session.userId;
+      
+      // Verify task belongs to user
+      const existingTask = await storage.getTask(id);
+      if (!existingTask || existingTask.userId !== userId) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+
+      const cleanedBody = {
+        ...req.body,
+        teamId: req.body.teamId?.trim() || null,
+        projectId: req.body.projectId?.trim() || null,
+        ticketNumber: req.body.ticketNumber?.trim() || null,
+        dueDate: req.body.dueDate ? new Date(req.body.dueDate) : null,
+      };
+      
+      const task = await storage.updateTask(id, cleanedBody);
+      res.json(task);
+    } catch (error) {
+      console.error("Error updating task:", error);
+      res.status(500).json({ message: "Failed to update task" });
+    }
+  });
+
   // User Updates routes
   app.get("/api/user-updates", isAuthenticated, async (req: any, res) => {
     try {
@@ -637,6 +712,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...req.body,
         teamId: req.body.teamId?.trim() || null,
         projectId: req.body.projectId?.trim() || null,
+        taskId: req.body.taskId?.trim() || null,
         ticketNumber: req.body.ticketNumber?.trim() || null,
       };
       
@@ -645,6 +721,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const validatedData = insertUserUpdateSchema.parse(cleanedBody);
       const update = await storage.createUserUpdate(userId, validatedData);
+
+      // If a task is associated and the update status is COMPLETED, update the task status
+      if (update.taskId && update.status === "COMPLETED") {
+        await storage.updateTask(update.taskId, { status: "COMPLETED" });
+      }
+
       res.json(update);
     } catch (error) {
       console.error("Error creating user update:", error);
