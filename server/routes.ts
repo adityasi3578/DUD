@@ -631,7 +631,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/user-updates", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.session.userId;
-      const validatedData = insertUserUpdateSchema.parse(req.body);
+      
+      // Clean the request body - convert empty strings to null for optional foreign keys
+      const cleanedBody = {
+        ...req.body,
+        teamId: req.body.teamId?.trim() || null,
+        projectId: req.body.projectId?.trim() || null,
+        ticketNumber: req.body.ticketNumber?.trim() || null,
+      };
+      
+      console.log("Original body:", req.body);
+      console.log("Cleaned body:", cleanedBody);
+      
+      const validatedData = insertUserUpdateSchema.parse(cleanedBody);
       const update = await storage.createUserUpdate(userId, validatedData);
       res.json(update);
     } catch (error) {
