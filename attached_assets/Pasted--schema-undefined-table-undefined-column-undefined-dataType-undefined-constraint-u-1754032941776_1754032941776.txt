@@ -1,0 +1,198 @@
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+7:10:46 AM [express] GET /api/admin/recent-updates 500 in 2631ms :: {"message":"Failed to fetch rece…
+Error fetching admin metrics: error: relation "user_updates" does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getAdminMetrics (file:///opt/render/project/src/dist/index.js:462:34)
+    at async file:///opt/render/project/src/dist/index.js:1016:23 {
+  length: 111,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '22',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+7:10:46 AM [express] GET /api/admin/metrics 500 in 3412ms :: {"message":"Failed to fetch admin metri…
+     ==> Deploying...
+==> Running 'npm run start'
+> rest-express@1.0.0 start
+> NODE_ENV=production node dist/index.js
+7:20:12 AM [express] serving on port 10000
+     ==> Your service is live 🎉
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
+     ==> 
+     ==> Available at your primary URL https://dud-backend-48y7.onrender.com
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
+Error fetching user tasks: error: relation "user_updates" does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getUserTasks (file:///opt/render/project/src/dist/index.js:516:21)
+    at async file:///opt/render/project/src/dist/index.js:1056:21 {
+  length: 112,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '591',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Error fetching recent tasks: error: relation "user_updates" does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getUserRecentTasks (file:///opt/render/project/src/dist/index.js:526:21)
+    at async file:///opt/render/project/src/dist/index.js:1066:21 {
+  length: 112,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '591',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Error fetching user metrics: error: relation "user_updates" does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getUserMetrics (file:///opt/render/project/src/dist/index.js:491:29)
+    at async file:///opt/render/project/src/dist/index.js:1046:23 {
+  length: 112,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '159',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+7:20:41 AM [express] GET /api/user/tasks 500 in 3118ms :: {"message":"Failed to fetch user tasks"}
+7:20:41 AM [express] GET /api/user/recent-tasks 500 in 2685ms :: {"message":"Failed to fetch recent …
+7:20:41 AM [express] GET /api/user/metrics 500 in 2685ms :: {"message":"Failed to fetch user metrics…
+7:20:45 AM [express] GET /api/goals 304 in 1504ms :: [{"id":"abac0cd2-02ea-400f-bb79-d5b79b036493","…
+Error fetching user metrics: error: relation "user_updates" does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getUserMetrics (file:///opt/render/project/src/dist/index.js:491:29)
+    at async file:///opt/render/project/src/dist/index.js:1046:23 {
+  length: 112,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '159',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Error fetching recent tasks: error: relation "user_updates" does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getUserRecentTasks (file:///opt/render/project/src/dist/index.js:526:21)
+    at async file:///opt/render/project/src/dist/index.js:1066:21 {
+  length: 112,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '591',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Error fetching user tasks: error: relation "user_updates" does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getUserTasks (file:///opt/render/project/src/dist/index.js:516:21)
+    at async file:///opt/render/project/src/dist/index.js:1056:21 {
+  length: 112,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '591',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+7:21:03 AM [express] GET /api/user/recent-tasks 500 in 2494ms :: {"message":"Failed to fetch recent …
+7:21:03 AM [express] GET /api/user/metrics 500 in 2484ms :: {"message":"Failed to fetch user metrics…
+7:21:03 AM [express] GET /api/user/tasks 500 in 2526ms :: {"message":"Failed to fetch user tasks"}

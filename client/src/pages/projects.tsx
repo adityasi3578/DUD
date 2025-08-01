@@ -148,12 +148,20 @@ export default function Projects() {
             <CardTitle>Create New Project</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Input
-              placeholder="Project title"
-              value={newProject.title}
-              onChange={(e) => setNewProject({ ...newProject, title: e.target.value })}
-              data-testid="input-project-title"
-            />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <Input
+                placeholder="Project title"
+                value={newProject.title}
+                onChange={(e) => setNewProject({ ...newProject, title: e.target.value })}
+                data-testid="input-project-title"
+              />
+              <Input
+                placeholder="Ticket Number (optional, e.g., PROJ-123)"
+                value={newProject.ticketNumber || ""}
+                onChange={(e) => setNewProject({ ...newProject, ticketNumber: e.target.value })}
+                data-testid="input-project-ticket"
+              />
+            </div>
             <Select
               value={newProject.teamId}
               onValueChange={(teamId) => setNewProject({ ...newProject, teamId })}
@@ -229,7 +237,12 @@ export default function Projects() {
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div className="flex items-center gap-2">
                 {getPriorityIcon(project.priority)}
-                <CardTitle className="text-lg">{project.title}</CardTitle>
+                <div>
+                  <CardTitle className="text-lg">{project.title}</CardTitle>
+                  {project.ticketNumber && (
+                    <p className="text-sm text-gray-500">#{project.ticketNumber}</p>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <Badge className={getStatusColor(project.status)}>

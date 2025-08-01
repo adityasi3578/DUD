@@ -189,11 +189,18 @@ export default function AdminPanel() {
             {showCreateTeamForm && (
               <div className="mb-6 p-4 border rounded-lg space-y-4">
                 <h3 className="font-medium">Create New Team</h3>
-                <Input
-                  placeholder="Team name"
-                  value={newTeam.name}
-                  onChange={(e) => setNewTeam({ ...newTeam, name: e.target.value })}
-                />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <Input
+                    placeholder="Team name"
+                    value={newTeam.name}
+                    onChange={(e) => setNewTeam({ ...newTeam, name: e.target.value })}
+                  />
+                  <Input
+                    placeholder="Ticket Number (optional, e.g., TEAM-123)"
+                    value={newTeam.ticketNumber || ""}
+                    onChange={(e) => setNewTeam({ ...newTeam, ticketNumber: e.target.value })}
+                  />
+                </div>
                 <Textarea
                   placeholder="Team description"
                   value={newTeam.description || ""}
