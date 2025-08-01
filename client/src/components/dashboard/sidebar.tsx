@@ -44,22 +44,22 @@ export function Sidebar() {
             <>
               <li>
                 <Link
-                  href="/user-dashboard"
+                  href="/dashboard"
                   className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
-                    isActive('/user-dashboard')
+                    isActive('/dashboard')
                       ? 'bg-primary/10 text-primary font-medium' 
                       : 'text-slate-600 hover:bg-slate-100'
                   }`}
                 >
                   <BarChart3 className="w-5 h-5" />
-                  <span>My Dashboard</span>
+                  <span>Dashboard</span>
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/dashboard"
+                  href="/"
                   className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
-                    isActive('/dashboard') || isActive('/') || isActive('/admin')
+                    isActive('/') || isActive('/admin')
                       ? 'bg-primary/10 text-primary font-medium' 
                       : 'text-slate-600 hover:bg-slate-100'
                   }`}

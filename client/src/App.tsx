@@ -13,7 +13,6 @@ import Projects from "@/pages/projects";
 import AdminPanel from "@/pages/admin-panel";
 import TeamDashboard from "@/pages/team-dashboard";
 import UserUpdates from "@/pages/user-updates";
-import UserDashboardPage from "@/pages/user-dashboard";
 import SigninPage from "@/pages/signin";
 import SignupPage from "@/pages/signup";
 import NotFound from "@/pages/not-found";
@@ -76,7 +75,6 @@ function AppRouter() {
           <Route path="/" component={AdminPanel} />
           <Route path="/admin" component={AdminPanel} />
           <Route path="/dashboard" component={Dashboard} />
-          <Route path="/user-dashboard" component={UserDashboardPage} />
           <Route path="/team-dashboard" component={TeamDashboard} />
           <Route path="/tasks" component={Tasks} />
           <Route path="/analytics" component={Analytics} />
