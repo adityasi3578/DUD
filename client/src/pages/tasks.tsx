@@ -61,6 +61,7 @@ export default function Tasks() {
 
   const createTaskMutation = useMutation({
     mutationFn: async (data: FormData) => {
+      console.log("Submitting task data:", data);
       const response = await apiRequest("/api/user-updates", "POST", data);
       return response.json();
     },
@@ -74,16 +75,19 @@ export default function Tasks() {
       reset();
       setIsDialogOpen(false);
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Task creation error:", error);
       toast({
         title: "Error",
-        description: "Failed to create task. Please try again.",
+        description: `Failed to create task: ${error.message || 'Please try again.'}`,
         variant: "destructive",
       });
     },
   });
 
   const onSubmit = (data: FormData) => {
+    console.log("Form submitted with data:", data);
+    console.log("Form errors:", errors);
     createTaskMutation.mutate(data);
   };
 
