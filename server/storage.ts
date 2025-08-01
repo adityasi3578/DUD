@@ -111,6 +111,8 @@ export interface IStorage {
     activeUsers: number;
     pendingUsers: number;
     completedTasks: number;
+    taskCompletionRate: number;
+    projectCompletionRate: number;
   }>;
   getAllProjects(): Promise<Project[]>;
   getRecentUpdates(): Promise<(UserUpdate & { user: User; team?: Team })[]>;
@@ -577,6 +579,8 @@ export class DatabaseStorage implements IStorage {
     activeUsers: number;
     pendingUsers: number;
     completedTasks: number;
+    taskCompletionRate: number;
+    projectCompletionRate: number;
   }> {
     const usersResult = await db.select({ count: sql<number>`count(*)` }).from(users);
     const teamsResult = await db.select({ count: sql<number>`count(*)` }).from(teams);
@@ -603,6 +607,8 @@ export class DatabaseStorage implements IStorage {
       activeUsers: activeUsersResult[0]?.count || 0,
       pendingUsers: pendingUsersResult[0]?.count || 0,
       completedTasks,
+      taskCompletionRate,
+      projectCompletionRate,
     };
   }
 
