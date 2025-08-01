@@ -1,0 +1,258 @@
+     ==> 
+     ==> Available at your primary URL https://dud-backend-48y7.onrender.com
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
+Error fetching user metrics: error: relation "tasks" does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getUserMetrics (file:///opt/render/project/src/dist/index.js:528:29)
+    at async file:///opt/render/project/src/dist/index.js:1099:23 {
+  length: 105,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '192',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Error fetching recent tasks: error: relation "tasks" does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getUserRecentTasks (file:///opt/render/project/src/dist/index.js:579:21)
+    at async file:///opt/render/project/src/dist/index.js:1119:22 {
+  length: 105,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '556',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+11:21:30 AM [express] GET /api/user/metrics 500 in 2945ms :: {"message":"Failed to fetch user metrics…
+11:21:30 AM [express] GET /api/user/recent-tasks 500 in 2940ms :: {"message":"Failed to fetch recent …
+Error fetching user tasks: error: relation "tasks" does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getUserTasks (file:///opt/render/project/src/dist/index.js:569:21)
+    at async file:///opt/render/project/src/dist/index.js:1109:22 {
+  length: 105,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '556',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+11:21:31 AM [express] GET /api/user/tasks 500 in 3589ms :: {"message":"Failed to fetch user tasks"}
+11:21:47 AM [express] GET /api/auth/user 304 in 2444ms :: {"id":"905fd7dd-147a-496e-b569-f711ca2f8f44…
+Error fetching user metrics: error: relation "tasks" does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getUserMetrics (file:///opt/render/project/src/dist/index.js:528:29)
+    at async file:///opt/render/project/src/dist/index.js:1099:23 {
+  length: 105,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '192',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+11:21:48 AM [express] GET /api/user/metrics 500 in 487ms :: {"message":"Failed to fetch user metrics"}
+11:21:50 AM [express] GET /api/user/teams 304 in 2444ms :: [{"id":"70cb50f6-d992-4a41-98a0-3e82af3351…
+Error fetching user tasks: error: relation "tasks" does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getUserTasks (file:///opt/render/project/src/dist/index.js:569:21)
+    at async file:///opt/render/project/src/dist/index.js:1109:22 {
+  length: 105,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '556',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+11:21:50 AM [express] GET /api/user/tasks 500 in 486ms :: {"message":"Failed to fetch user tasks"}
+Error fetching recent tasks: error: relation "tasks" does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getUserRecentTasks (file:///opt/render/project/src/dist/index.js:579:21)
+    at async file:///opt/render/project/src/dist/index.js:1119:22 {
+  length: 105,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '556',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+11:21:51 AM [express] GET /api/user/recent-tasks 500 in 1511ms :: {"message":"Failed to fetch recent …
+Error fetching tasks: error: relation "tasks" does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getTasks (file:///opt/render/project/src/dist/index.js:554:12)
+    at async file:///opt/render/project/src/dist/index.js:1150:22 {
+  length: 105,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '192',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+11:22:39 AM [express] GET /api/tasks 500 in 2449ms :: {"message":"Failed to fetch tasks"}
+Error fetching tasks: error: relation "tasks" does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getTasks (file:///opt/render/project/src/dist/index.js:554:12)
+    at async file:///opt/render/project/src/dist/index.js:1150:22 {
+  length: 105,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '192',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Error fetching user updates: error: column "task_id" does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getUserUpdates (file:///opt/render/project/src/dist/index.js:475:12)
+    at async file:///opt/render/project/src/dist/index.js:1213:23 {
+  length: 174,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: 'Perhaps you meant to reference the column "user_updates.team_id".',
+  position: '50',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3723',
+  routine: 'errorMissingColumn'
+}
+11:23:28 AM [express] GET /api/tasks 500 in 2489ms :: {"message":"Failed to fetch tasks"}
+11:23:28 AM [express] GET /api/user-updates 500 in 2535ms :: {"message":"Failed to fetch updates"}
+11:23:39 AM [express] GET /api/teams/9fead981-3e4b-4750-9db5-8b8a1700d86d/projects 304 in 1487ms :: […
+Error fetching tasks: error: relation "tasks" does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getTasks (file:///opt/render/project/src/dist/index.js:554:12)
+    at async file:///opt/render/project/src/dist/index.js:1150:22 {
+  length: 105,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '192',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+11:24:03 AM [express] GET /api/tasks 500 in 2458ms :: {"message":"Failed to fetch tasks"}
+
