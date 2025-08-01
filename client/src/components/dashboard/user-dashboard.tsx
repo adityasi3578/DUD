@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, Clock, Target, TrendingUp, Search, Filter, Briefcase } from "lucide-react";
 import { DashboardHeader } from "./dashboard-header";
+import { WidgetLayout } from "./widget-layout";
 import { useAuth } from "@/hooks/useAuth";
 import type { UserUpdate, Project, Team, TeamMembership } from "@shared/schema";
 
@@ -129,73 +130,13 @@ export function UserDashboard() {
           </p>
         </div>
 
-        {/* User Metrics */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Tasks</p>
-                  <p className="text-2xl font-bold">{metrics?.totalTasks || 0}</p>
-                  <p className="text-xs text-gray-600">{metrics?.completedTasks || 0} completed</p>
-                </div>
-                <CheckCircle className="h-8 w-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">In Progress</p>
-                  <p className="text-2xl font-bold">{metrics?.inProgressTasks || 0}</p>
-                  <p className="text-xs text-gray-600">Active tasks</p>
-                </div>
-                <Clock className="h-8 w-8 text-blue-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Projects</p>
-                  <p className="text-2xl font-bold">{metrics?.totalProjects || 0}</p>
-                  <p className="text-xs text-gray-600">{metrics?.completedProjects || 0} completed</p>
-                </div>
-                <Target className="h-8 w-8 text-purple-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Task Completion Rate</p>
-                  <p className="text-2xl font-bold">{metrics?.taskCompletionRate || 0}%</p>
-                  <Progress value={metrics?.taskCompletionRate || 0} className="h-2 mt-2" />
-                </div>
-                <TrendingUp className="h-8 w-8 text-orange-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Project Completion Rate</p>
-                  <p className="text-2xl font-bold">{metrics?.projectCompletionRate || 0}%</p>
-                  <Progress value={metrics?.projectCompletionRate || 0} className="h-2 mt-2" />
-                </div>
-                <Briefcase className="h-8 w-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Customizable Widget Layout */}
+        <WidgetLayout 
+          metrics={metrics}
+          userTasks={filteredTasks}
+          userTeams={userTeams}
+          isLoading={metricsLoading || tasksLoading}
+        />
 
         {/* Team Legend */}
         {userTeams.length > 0 && (
