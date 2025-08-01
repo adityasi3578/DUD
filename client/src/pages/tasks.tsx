@@ -83,6 +83,29 @@ export default function Tasks() {
     },
   });
 
+  const updateTaskStatusMutation = useMutation({
+    mutationFn: async ({ taskId, status }: { taskId: string; status: string }) => {
+      const response = await apiRequest(`/api/tasks/${taskId}`, "PATCH", { status });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Task Updated",
+        description: "Task status has been updated successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
+    },
+    onError: (error: any) => {
+      console.error("Task update error:", error);
+      toast({
+        title: "Error",
+        description: `Failed to update task: ${error.message || 'Please try again.'}`,
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (data: FormData) => {
     console.log("Form submitted with data:", data);
     console.log("Form errors:", errors);
@@ -306,9 +329,23 @@ export default function Tasks() {
                         
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium">Status:</span>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
-                            {task.status.replace('_', ' ')}
-                          </span>
+                          <Select 
+                            value={task.status} 
+                            onValueChange={(newStatus) => 
+                              updateTaskStatusMutation.mutate({ taskId: task.id, status: newStatus })
+                            }
+                          >
+                            <SelectTrigger className="w-32 h-8">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="TODO">To Do</SelectItem>
+                              <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                              <SelectItem value="COMPLETED">Completed</SelectItem>
+                              <SelectItem value="BLOCKED">Blocked</SelectItem>
+                              <SelectItem value="REVIEW">Review</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
 
                         <div className="flex items-center justify-between">
@@ -326,8 +363,8 @@ export default function Tasks() {
                         )}
 
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Work Hours:</span>
-                          <span className="text-sm text-slate-600">{task.workHours}h</span>
+                          <span className="text-sm font-medium">Actual Hours:</span>
+                          <span className="text-sm text-slate-600">{task.actualHours || 0}h</span>
                         </div>
 
                         <div className="text-xs text-slate-500">
