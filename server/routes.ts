@@ -587,8 +587,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/user/metrics", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.session.userId;
-      const metrics = await storage.getUserMetrics(userId);
-      res.json(metrics);
+      const userMetrics = await storage.getUserMetrics(userId);
+      
+      // Get user's projects
+      const userProjects = await storage.getProjects(userId);
+      const totalProjects = userProjects.length;
+      const completedProjects = userProjects.filter((p: any) => p.status === "completed").length;
+      const projectCompletionRate = totalProjects > 0 ? Math.round((completedProjects / totalProjects) * 100) : 0;
+
+      res.json({
+        totalTasks: userMetrics.totalTasks,
+        completedTasks: userMetrics.completedTasks,
+        inProgressTasks: userMetrics.inProgressTasks,
+        blockedTasks: userMetrics.blockedTasks,
+        totalProjects,
+        completedProjects,
+        taskCompletionRate: userMetrics.completionRate,
+        projectCompletionRate
+      });
     } catch (error) {
       console.error("Error fetching user metrics:", error);
       res.status(500).json({ message: "Failed to fetch user metrics" });
