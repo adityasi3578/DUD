@@ -564,25 +564,37 @@ export class DatabaseStorage implements IStorage {
   async getAdminMetrics(): Promise<{
     totalUsers: number;
     totalTeams: number;
-    totalProjects: number;
-    activeUsers: number;
-    pendingUsers: number;
+    totalTasks: number;
     completedTasks: number;
+    totalProjects: number;
+    completedProjects: number;
+    taskCompletionRate: number;
+    projectCompletionRate: number;
   }> {
     const usersResult = await db.select({ count: sql<number>`count(*)` }).from(users);
     const teamsResult = await db.select({ count: sql<number>`count(*)` }).from(teams);
     const projectsResult = await db.select({ count: sql<number>`count(*)` }).from(projects);
-    const activeUsersResult = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.status, "APPROVED"));
-    const pendingUsersResult = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.status, "PENDING"));
+    const tasksResult = await db.select({ count: sql<number>`count(*)` }).from(userUpdates);
     const completedTasksResult = await db.select({ count: sql<number>`count(*)` }).from(userUpdates).where(eq(userUpdates.status, "COMPLETED"));
+    const completedProjectsResult = await db.select({ count: sql<number>`count(*)` }).from(projects).where(eq(projects.status, "completed"));
+
+    const totalTasks = tasksResult[0]?.count || 0;
+    const completedTasks = completedTasksResult[0]?.count || 0;
+    const totalProjects = projectsResult[0]?.count || 0;
+    const completedProjects = completedProjectsResult[0]?.count || 0;
+
+    const taskCompletionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    const projectCompletionRate = totalProjects > 0 ? Math.round((completedProjects / totalProjects) * 100) : 0;
 
     return {
       totalUsers: usersResult[0]?.count || 0,
       totalTeams: teamsResult[0]?.count || 0,
-      totalProjects: projectsResult[0]?.count || 0,
-      activeUsers: activeUsersResult[0]?.count || 0,
-      pendingUsers: pendingUsersResult[0]?.count || 0,
-      completedTasks: completedTasksResult[0]?.count || 0,
+      totalTasks,
+      completedTasks,
+      totalProjects,
+      completedProjects,
+      taskCompletionRate,
+      projectCompletionRate,
     };
   }
 
@@ -619,42 +631,41 @@ export class DatabaseStorage implements IStorage {
     completedTasks: number;
     inProgressTasks: number;
     blockedTasks: number;
-    totalHours: number;
-    todayHours: number;
-    completionRate: number;
-    averageTaskTime: number;
+    totalProjects: number;
+    completedProjects: number;
+    taskCompletionRate: number;
+    projectCompletionRate: number;
   }> {
     const userTasksResult = await db
       .select()
       .from(userUpdates)
       .where(eq(userUpdates.userId, userId));
 
+    const userProjectsResult = await db
+      .select()
+      .from(projects)
+      .where(eq(projects.userId, userId));
+
     const totalTasks = userTasksResult.length;
     const completedTasks = userTasksResult.filter(t => t.status === "COMPLETED").length;
     const inProgressTasks = userTasksResult.filter(t => t.status === "IN_PROGRESS").length;
     const blockedTasks = userTasksResult.filter(t => t.status === "BLOCKED").length;
     
-    const totalHours = userTasksResult.reduce((sum, task) => sum + (task.workHours || 0), 0);
+    const totalProjects = userProjectsResult.length;
+    const completedProjects = userProjectsResult.filter(p => p.status === "completed").length;
     
-    // Get today's hours
-    const today = new Date().toISOString().split('T')[0];
-    const todayTasks = userTasksResult.filter(task => 
-      task.createdAt && task.createdAt.toISOString().split('T')[0] === today
-    );
-    const todayHours = todayTasks.reduce((sum, task) => sum + (task.workHours || 0), 0);
-    
-    const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-    const averageTaskTime = completedTasks > 0 ? Math.round(totalHours / completedTasks) : 0;
+    const taskCompletionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    const projectCompletionRate = totalProjects > 0 ? Math.round((completedProjects / totalProjects) * 100) : 0;
 
     return {
       totalTasks,
       completedTasks,
       inProgressTasks,
       blockedTasks,
-      totalHours,
-      todayHours,
-      completionRate,
-      averageTaskTime,
+      totalProjects,
+      completedProjects,
+      taskCompletionRate,
+      projectCompletionRate,
     };
   }
 

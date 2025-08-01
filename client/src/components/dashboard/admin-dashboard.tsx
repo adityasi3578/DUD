@@ -4,17 +4,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Users, Briefcase, Target, Activity, Search, Filter } from "lucide-react";
+import { Users, Briefcase, Target, Activity, Search, Filter, TrendingUp, CheckCircle } from "lucide-react";
 import { DashboardHeader } from "./dashboard-header";
 import type { Team, User, Project, UserUpdate } from "@shared/schema";
 
 interface AdminMetrics {
   totalUsers: number;
   totalTeams: number;
-  totalProjects: number;
-  activeUsers: number;
-  pendingUsers: number;
+  totalTasks: number;
   completedTasks: number;
+  totalProjects: number;
+  completedProjects: number;
+  taskCompletionRate: number;
+  projectCompletionRate: number;
 }
 
 export function AdminDashboard() {
@@ -124,14 +126,14 @@ export function AdminDashboard() {
       <DashboardHeader />
       <div className="p-4 lg:p-6 space-y-6">
         {/* Admin Metrics */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Users</p>
                   <p className="text-2xl font-bold">{metrics?.totalUsers || 0}</p>
-                  <p className="text-xs text-green-600">{metrics?.activeUsers || 0} active</p>
+                  <p className="text-xs text-green-600">System users</p>
                 </div>
                 <Users className="h-8 w-8 text-blue-600" />
               </div>
@@ -168,11 +170,37 @@ export function AdminDashboard() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Tasks Completed</p>
-                  <p className="text-2xl font-bold">{metrics?.completedTasks || 0}</p>
-                  <p className="text-xs text-gray-600">This month</p>
+                  <p className="text-sm font-medium text-gray-600">Total Tasks</p>
+                  <p className="text-2xl font-bold">{metrics?.totalTasks || 0}</p>
+                  <p className="text-xs text-gray-600">{metrics?.completedTasks || 0} completed</p>
                 </div>
                 <Activity className="h-8 w-8 text-orange-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Task Completion Rate</p>
+                  <p className="text-2xl font-bold">{metrics?.taskCompletionRate || 0}%</p>
+                  <p className="text-xs text-gray-600">Overall progress</p>
+                </div>
+                <TrendingUp className="h-8 w-8 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Project Completion Rate</p>
+                  <p className="text-2xl font-bold">{metrics?.projectCompletionRate || 0}%</p>
+                  <p className="text-xs text-gray-600">Overall progress</p>
+                </div>
+                <CheckCircle className="h-8 w-8 text-green-600" />
               </div>
             </CardContent>
           </Card>

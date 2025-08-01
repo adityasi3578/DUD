@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle, Clock, Target, TrendingUp, Search, Filter } from "lucide-react";
+import { CheckCircle, Clock, Target, TrendingUp, Search, Filter, Briefcase } from "lucide-react";
 import { DashboardHeader } from "./dashboard-header";
 import { useAuth } from "@/hooks/useAuth";
 import type { UserUpdate, Project, Team, TeamMembership } from "@shared/schema";
@@ -15,10 +15,10 @@ interface UserMetrics {
   completedTasks: number;
   inProgressTasks: number;
   blockedTasks: number;
-  totalHours: number;
-  todayHours: number;
-  completionRate: number;
-  averageTaskTime: number;
+  totalProjects: number;
+  completedProjects: number;
+  taskCompletionRate: number;
+  projectCompletionRate: number;
 }
 
 export function UserDashboard() {
@@ -102,13 +102,7 @@ export function UserDashboard() {
     }
   };
 
-  const formatHours = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    if (hours === 0) return `${mins}m`;
-    if (mins === 0) return `${hours}h`;
-    return `${hours}h ${mins}m`;
-  };
+
 
   if (metricsLoading || tasksLoading) {
     return (
@@ -136,7 +130,7 @@ export function UserDashboard() {
         </div>
 
         {/* User Metrics */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -167,9 +161,9 @@ export function UserDashboard() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Hours</p>
-                  <p className="text-2xl font-bold">{formatHours(metrics?.totalHours || 0)}</p>
-                  <p className="text-xs text-gray-600">Today: {formatHours(metrics?.todayHours || 0)}</p>
+                  <p className="text-sm font-medium text-gray-600">Total Projects</p>
+                  <p className="text-2xl font-bold">{metrics?.totalProjects || 0}</p>
+                  <p className="text-xs text-gray-600">{metrics?.completedProjects || 0} completed</p>
                 </div>
                 <Target className="h-8 w-8 text-purple-600" />
               </div>
@@ -180,11 +174,24 @@ export function UserDashboard() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Completion Rate</p>
-                  <p className="text-2xl font-bold">{metrics?.completionRate || 0}%</p>
-                  <Progress value={metrics?.completionRate || 0} className="h-2 mt-2" />
+                  <p className="text-sm font-medium text-gray-600">Task Completion Rate</p>
+                  <p className="text-2xl font-bold">{metrics?.taskCompletionRate || 0}%</p>
+                  <Progress value={metrics?.taskCompletionRate || 0} className="h-2 mt-2" />
                 </div>
                 <TrendingUp className="h-8 w-8 text-orange-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Project Completion Rate</p>
+                  <p className="text-2xl font-bold">{metrics?.projectCompletionRate || 0}%</p>
+                  <Progress value={metrics?.projectCompletionRate || 0} className="h-2 mt-2" />
+                </div>
+                <Briefcase className="h-8 w-8 text-green-600" />
               </div>
             </CardContent>
           </Card>
@@ -309,9 +316,6 @@ export function UserDashboard() {
                     </div>
                     <p className="text-xs text-gray-600 mb-2">{task.description}</p>
                     <div className="flex justify-between items-center text-xs text-gray-500">
-                      <span>
-                        {task.workHours ? `${formatHours(task.workHours)} logged` : 'No time logged'}
-                      </span>
                       <span>{new Date(task.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>
