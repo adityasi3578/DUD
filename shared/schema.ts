@@ -95,6 +95,7 @@ export const projectUpdates = pgTable("project_updates", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   projectId: varchar("project_id").notNull(),
   userId: varchar("user_id").notNull(),
+  teamId: varchar("team_id").references(() => teams.id, { onDelete: "cascade" }),
   ticketNumber: varchar("ticket_number"),
   title: text("title").notNull(),
   description: text("description").notNull(),

@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Clock, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { ProjectUpdate, InsertProjectUpdate } from "@shared/schema";
+import type { ProjectUpdate, InsertProjectUpdate, Team, TeamMembership } from "@shared/schema";
 
 interface ProjectUpdatesProps {
   projectId: string;
@@ -23,11 +23,16 @@ export function ProjectUpdates({ projectId }: ProjectUpdatesProps) {
     status: "progress",
     hoursWorked: 0,
     ticketNumber: "",
-    ticketNumber: "",
+    teamId: "",
   });
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  // Get user's teams for team selection
+  const { data: userTeams = [] } = useQuery<(TeamMembership & { team: Team })[]>({
+    queryKey: ["/api/user/teams"],
+  });
 
   const { data: updates = [], isLoading } = useQuery<ProjectUpdate[]>({
     queryKey: ["/api/projects", projectId, "updates"],
@@ -45,7 +50,7 @@ export function ProjectUpdates({ projectId }: ProjectUpdatesProps) {
         status: "progress",
         hoursWorked: 0,
         ticketNumber: "",
-        ticketNumber: "",
+        teamId: "",
       });
       toast({
         title: "Success",
@@ -122,7 +127,7 @@ export function ProjectUpdates({ projectId }: ProjectUpdatesProps) {
             <CardTitle>Add Project Update</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <Input
                 placeholder="Update title"
                 value={newUpdate.title}
@@ -133,6 +138,21 @@ export function ProjectUpdates({ projectId }: ProjectUpdatesProps) {
                 value={newUpdate.ticketNumber || ""}
                 onChange={(e) => setNewUpdate({ ...newUpdate, ticketNumber: e.target.value })}
               />
+              <Select
+                value={newUpdate.teamId || ""}
+                onValueChange={(teamId) => setNewUpdate({ ...newUpdate, teamId })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select team" />
+                </SelectTrigger>
+                <SelectContent>
+                  {userTeams.map((membership) => (
+                    <SelectItem key={membership.team?.id} value={membership.team?.id || ""}>
+                      {membership.team?.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <Textarea
               placeholder="Describe what you've worked on..."
@@ -202,9 +222,12 @@ export function ProjectUpdates({ projectId }: ProjectUpdatesProps) {
               <p className="text-gray-600 dark:text-gray-300 mb-4 whitespace-pre-wrap">
                 {update.description}
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {new Date(update.createdAt).toLocaleString()}
-              </p>
+              <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
+                <span>{new Date(update.createdAt).toLocaleString()}</span>
+                {update.teamId && (
+                  <span>Team: {userTeams.find(m => m.team?.id === update.teamId)?.team?.name || 'Unknown'}</span>
+                )}
+              </div>
             </CardContent>
           </Card>
         ))}
