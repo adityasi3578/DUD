@@ -300,39 +300,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/dashboard/metrics", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.session.userId;
+      const userMetrics = await storage.getUserMetrics(userId);
+      const goals = await storage.getGoals(userId);
+
+      // Calculate today's completed tasks based on task completion date
       const today = new Date().toISOString().split('T')[0];
       const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
       
-      const todayUpdate = await storage.getDailyUpdate(userId, today);
-      const yesterdayUpdate = await storage.getDailyUpdate(userId, yesterday);
-      const monthlyStats = await storage.getMonthlyStats(userId);
-      const goals = await storage.getGoals(userId);
+      // Get tasks completed today vs yesterday
+      const allUserTasks = await storage.getUserTasks(userId);
+      const todayCompletedTasks = allUserTasks.filter(task => 
+        task.status === "COMPLETED" && 
+        task.updatedAt?.toISOString().split('T')[0] === today
+      ).length;
+      
+      const yesterdayCompletedTasks = allUserTasks.filter(task => 
+        task.status === "COMPLETED" && 
+        task.updatedAt?.toISOString().split('T')[0] === yesterday
+      ).length;
 
-      const tasksCompleted = todayUpdate?.tasksCompleted || 0;
-      const yesterdayTasks = yesterdayUpdate?.tasksCompleted || 0;
-      const tasksChange = tasksCompleted - yesterdayTasks;
+      const tasksChange = todayCompletedTasks - yesterdayCompletedTasks;
 
-      const hoursWorked = todayUpdate ? Math.round(todayUpdate.hoursWorked / 60 * 10) / 10 : 0;
+      // Calculate total goal progress
       const totalGoalProgress = goals.length > 0 
         ? Math.round(goals.reduce((sum, goal) => sum + (goal.current / goal.target), 0) / goals.length * 100)
         : 0;
 
-      // Calculate productivity score based on tasks, hours, and goal progress
+      // Calculate hours worked from actual tasks
+      const hoursWorked = userMetrics.todayHours;
+      
+      // Calculate productivity score based on completion rate and hours
       const productivityScore = Math.min(100, Math.round(
-        (tasksCompleted * 10) + (hoursWorked * 5) + (totalGoalProgress * 0.5)
+        (userMetrics.completionRate * 0.6) + (Math.min(hoursWorked, 8) * 5) + (totalGoalProgress * 0.4)
       ));
 
+      // Calculate streak from recent activity
+      const recentTasks = allUserTasks
+        .filter(task => task.status === "COMPLETED")
+        .sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime());
+      
+      let streak = 0;
+      const dates = new Set();
+      for (const task of recentTasks) {
+        const date = task.updatedAt?.toISOString().split('T')[0];
+        if (date) dates.add(date);
+        if (dates.size > 7) break;
+      }
+      streak = dates.size;
+
       res.json({
-        tasksCompleted,
+        tasksCompleted: todayCompletedTasks,
         tasksChange: tasksChange > 0 ? `+${tasksChange} from yesterday` : tasksChange < 0 ? `${tasksChange} from yesterday` : 'Same as yesterday',
         goalProgress: totalGoalProgress,
         timeSpent: `${Math.floor(hoursWorked)}h ${Math.round((hoursWorked % 1) * 60)}m`,
         timeSpentStatus: hoursWorked >= 8 ? 'On track' : hoursWorked >= 6 ? 'Good pace' : 'Behind target',
         productivityScore,
         productivityChange: productivityScore > 80 ? '+5 points' : productivityScore > 60 ? '+2 points' : '-1 point',
-        currentStreak: monthlyStats.streak
+        currentStreak: streak
       });
     } catch (error) {
+      console.error("Dashboard metrics error:", error);
       res.status(500).json({ message: "Failed to fetch dashboard metrics" });
     }
   });
