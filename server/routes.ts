@@ -523,6 +523,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin dashboard metrics
+  app.get("/api/admin/metrics", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const metrics = await storage.getAdminMetrics();
+      res.json(metrics);
+    } catch (error) {
+      console.error("Error fetching admin metrics:", error);
+      res.status(500).json({ message: "Failed to fetch admin metrics" });
+    }
+  });
+
+  // Admin projects
+  app.get("/api/admin/projects", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const projects = await storage.getAllProjects();
+      res.json(projects);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      res.status(500).json({ message: "Failed to fetch projects" });
+    }
+  });
+
+  // Admin recent updates
+  app.get("/api/admin/recent-updates", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const updates = await storage.getRecentUpdates();
+      res.json(updates);
+    } catch (error) {
+      console.error("Error fetching recent updates:", error);
+      res.status(500).json({ message: "Failed to fetch recent updates" });
+    }
+  });
+
+  // User dashboard metrics
+  app.get("/api/user/metrics", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const metrics = await storage.getUserMetrics(userId);
+      res.json(metrics);
+    } catch (error) {
+      console.error("Error fetching user metrics:", error);
+      res.status(500).json({ message: "Failed to fetch user metrics" });
+    }
+  });
+
+  // User tasks
+  app.get("/api/user/tasks", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const tasks = await storage.getUserTasks(userId);
+      res.json(tasks);
+    } catch (error) {
+      console.error("Error fetching user tasks:", error);
+      res.status(500).json({ message: "Failed to fetch user tasks" });
+    }
+  });
+
+  // User recent tasks
+  app.get("/api/user/recent-tasks", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const tasks = await storage.getUserRecentTasks(userId);
+      res.json(tasks);
+    } catch (error) {
+      console.error("Error fetching recent tasks:", error);
+      res.status(500).json({ message: "Failed to fetch recent tasks" });
+    }
+  });
+
   // User team routes
   app.get("/api/user/teams", isAuthenticated, async (req: any, res) => {
     try {

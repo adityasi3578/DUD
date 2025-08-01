@@ -92,6 +92,32 @@ export interface IStorage {
   getUserUpdates(userId: string): Promise<UserUpdate[]>;
   createUserUpdate(userId: string, update: InsertUserUpdate): Promise<UserUpdate>;
   updateUserUpdate(updateId: string, updates: Partial<InsertUserUpdate>): Promise<UserUpdate>;
+
+  // Admin dashboard methods
+  getAdminMetrics(): Promise<{
+    totalUsers: number;
+    totalTeams: number;
+    totalProjects: number;
+    activeUsers: number;
+    pendingUsers: number;
+    completedTasks: number;
+  }>;
+  getAllProjects(): Promise<Project[]>;
+  getRecentUpdates(): Promise<(UserUpdate & { user: User; team?: Team })[]>;
+
+  // User dashboard methods
+  getUserMetrics(userId: string): Promise<{
+    totalTasks: number;
+    completedTasks: number;
+    inProgressTasks: number;
+    blockedTasks: number;
+    totalHours: number;
+    todayHours: number;
+    completionRate: number;
+    averageTaskTime: number;
+  }>;
+  getUserTasks(userId: string): Promise<(UserUpdate & { project?: Project })[]>;
+  getUserRecentTasks(userId: string): Promise<(UserUpdate & { project?: Project })[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -525,6 +551,138 @@ export class DatabaseStorage implements IStorage {
     return updatedUpdate;
   }
 
+  // Admin dashboard methods
+  async getAdminMetrics(): Promise<{
+    totalUsers: number;
+    totalTeams: number;
+    totalProjects: number;
+    activeUsers: number;
+    pendingUsers: number;
+    completedTasks: number;
+  }> {
+    const usersResult = await db.select({ count: sql<number>`count(*)` }).from(users);
+    const teamsResult = await db.select({ count: sql<number>`count(*)` }).from(teams);
+    const projectsResult = await db.select({ count: sql<number>`count(*)` }).from(projects);
+    const activeUsersResult = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.status, "APPROVED"));
+    const pendingUsersResult = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.status, "PENDING"));
+    const completedTasksResult = await db.select({ count: sql<number>`count(*)` }).from(userUpdates).where(eq(userUpdates.status, "COMPLETED"));
+
+    return {
+      totalUsers: usersResult[0]?.count || 0,
+      totalTeams: teamsResult[0]?.count || 0,
+      totalProjects: projectsResult[0]?.count || 0,
+      activeUsers: activeUsersResult[0]?.count || 0,
+      pendingUsers: pendingUsersResult[0]?.count || 0,
+      completedTasks: completedTasksResult[0]?.count || 0,
+    };
+  }
+
+  async getAllProjects(): Promise<Project[]> {
+    return await db
+      .select()
+      .from(projects)
+      .orderBy(desc(projects.createdAt));
+  }
+
+  async getRecentUpdates(): Promise<(UserUpdate & { user: User; team?: Team })[]> {
+    const results = await db
+      .select({
+        update: userUpdates,
+        user: users,
+        team: teams
+      })
+      .from(userUpdates)
+      .leftJoin(users, eq(userUpdates.userId, users.id))
+      .leftJoin(teams, eq(userUpdates.teamId, teams.id))
+      .orderBy(desc(userUpdates.createdAt))
+      .limit(10);
+
+    return results.map(result => ({
+      ...result.update,
+      user: result.user!,
+      team: result.team || undefined
+    }));
+  }
+
+  // User dashboard methods
+  async getUserMetrics(userId: string): Promise<{
+    totalTasks: number;
+    completedTasks: number;
+    inProgressTasks: number;
+    blockedTasks: number;
+    totalHours: number;
+    todayHours: number;
+    completionRate: number;
+    averageTaskTime: number;
+  }> {
+    const userTasksResult = await db
+      .select()
+      .from(userUpdates)
+      .where(eq(userUpdates.userId, userId));
+
+    const totalTasks = userTasksResult.length;
+    const completedTasks = userTasksResult.filter(t => t.status === "COMPLETED").length;
+    const inProgressTasks = userTasksResult.filter(t => t.status === "IN_PROGRESS").length;
+    const blockedTasks = userTasksResult.filter(t => t.status === "BLOCKED").length;
+    
+    const totalHours = userTasksResult.reduce((sum, task) => sum + (task.workHours || 0), 0);
+    
+    // Get today's hours
+    const today = new Date().toISOString().split('T')[0];
+    const todayTasks = userTasksResult.filter(task => 
+      task.createdAt && task.createdAt.toISOString().split('T')[0] === today
+    );
+    const todayHours = todayTasks.reduce((sum, task) => sum + (task.workHours || 0), 0);
+    
+    const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    const averageTaskTime = completedTasks > 0 ? Math.round(totalHours / completedTasks) : 0;
+
+    return {
+      totalTasks,
+      completedTasks,
+      inProgressTasks,
+      blockedTasks,
+      totalHours,
+      todayHours,
+      completionRate,
+      averageTaskTime,
+    };
+  }
+
+  async getUserTasks(userId: string): Promise<(UserUpdate & { project?: Project })[]> {
+    const results = await db
+      .select({
+        update: userUpdates,
+        project: projects
+      })
+      .from(userUpdates)
+      .leftJoin(projects, eq(userUpdates.projectId, projects.id))
+      .where(eq(userUpdates.userId, userId))
+      .orderBy(desc(userUpdates.createdAt));
+
+    return results.map(result => ({
+      ...result.update,
+      project: result.project || undefined
+    }));
+  }
+
+  async getUserRecentTasks(userId: string): Promise<(UserUpdate & { project?: Project })[]> {
+    const results = await db
+      .select({
+        update: userUpdates,
+        project: projects
+      })
+      .from(userUpdates)
+      .leftJoin(projects, eq(userUpdates.projectId, projects.id))
+      .where(eq(userUpdates.userId, userId))
+      .orderBy(desc(userUpdates.updatedAt))
+      .limit(5);
+
+    return results.map(result => ({
+      ...result.update,
+      project: result.project || undefined
+    }));
+  }
 
 }
 

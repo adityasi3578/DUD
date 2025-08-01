@@ -1,0 +1,295 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import { CheckCircle, Clock, Target, TrendingUp, Search, Filter } from "lucide-react";
+import { DashboardHeader } from "./dashboard-header";
+import { useAuth } from "@/hooks/useAuth";
+import type { UserUpdate, Project } from "@shared/schema";
+
+interface UserMetrics {
+  totalTasks: number;
+  completedTasks: number;
+  inProgressTasks: number;
+  blockedTasks: number;
+  totalHours: number;
+  todayHours: number;
+  completionRate: number;
+  averageTaskTime: number;
+}
+
+export function UserDashboard() {
+  const { user } = useAuth();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
+
+  const { data: metrics, isLoading: metricsLoading } = useQuery<UserMetrics>({
+    queryKey: ["/api/user/metrics"],
+  });
+
+  const { data: userTasks = [], isLoading: tasksLoading } = useQuery<(UserUpdate & { project?: Project })[]>({
+    queryKey: ["/api/user/tasks"],
+  });
+
+  const { data: recentTasks = [], isLoading: recentLoading } = useQuery<(UserUpdate & { project?: Project })[]>({
+    queryKey: ["/api/user/recent-tasks"],
+  });
+
+  // Filter tasks based on search and filters
+  const filteredTasks = userTasks.filter(task => {
+    const matchesSearch = task.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         task.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         task.ticketNumber?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === "all" || task.status === statusFilter;
+    const matchesPriority = priorityFilter === "all" || task.priority === priorityFilter;
+    return matchesSearch && matchesStatus && matchesPriority;
+  });
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "COMPLETED":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      case "IN_PROGRESS":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+      case "BLOCKED":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+      case "REVIEW":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "URGENT":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+      case "HIGH":
+        return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200";
+      case "MEDIUM":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+      case "LOW":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
+    }
+  };
+
+  const formatHours = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours === 0) return `${mins}m`;
+    if (mins === 0) return `${hours}h`;
+    return `${hours}h ${mins}m`;
+  };
+
+  if (metricsLoading || tasksLoading) {
+    return (
+      <>
+        <DashboardHeader />
+        <div className="p-4 lg:p-6">
+          <div className="text-lg">Loading your dashboard...</div>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <DashboardHeader />
+      <div className="p-4 lg:p-6 space-y-6">
+        {/* Welcome Message */}
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Welcome back, {user?.firstName || user?.email}!
+          </h2>
+          <p className="text-gray-600">
+            Track your progress and manage your tasks efficiently.
+          </p>
+        </div>
+
+        {/* User Metrics */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Tasks</p>
+                  <p className="text-2xl font-bold">{metrics?.totalTasks || 0}</p>
+                  <p className="text-xs text-gray-600">{metrics?.completedTasks || 0} completed</p>
+                </div>
+                <CheckCircle className="h-8 w-8 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">In Progress</p>
+                  <p className="text-2xl font-bold">{metrics?.inProgressTasks || 0}</p>
+                  <p className="text-xs text-gray-600">Active tasks</p>
+                </div>
+                <Clock className="h-8 w-8 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Hours</p>
+                  <p className="text-2xl font-bold">{formatHours(metrics?.totalHours || 0)}</p>
+                  <p className="text-xs text-gray-600">Today: {formatHours(metrics?.todayHours || 0)}</p>
+                </div>
+                <Target className="h-8 w-8 text-purple-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Completion Rate</p>
+                  <p className="text-2xl font-bold">{metrics?.completionRate || 0}%</p>
+                  <Progress value={metrics?.completionRate || 0} className="h-2 mt-2" />
+                </div>
+                <TrendingUp className="h-8 w-8 text-orange-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Filter Your Tasks
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search your tasks, tickets..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                  <SelectItem value="COMPLETED">Completed</SelectItem>
+                  <SelectItem value="BLOCKED">Blocked</SelectItem>
+                  <SelectItem value="REVIEW">Review</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Filter by priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Priority</SelectItem>
+                  <SelectItem value="URGENT">Urgent</SelectItem>
+                  <SelectItem value="HIGH">High</SelectItem>
+                  <SelectItem value="MEDIUM">Medium</SelectItem>
+                  <SelectItem value="LOW">Low</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* My Tasks */}
+          <Card>
+            <CardHeader>
+              <CardTitle>My Tasks</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {filteredTasks.map((task) => (
+                  <div key={task.id} className="p-3 border rounded-lg">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-sm">{task.title}</h4>
+                        {task.ticketNumber && (
+                          <p className="text-xs text-gray-500">Ticket: {task.ticketNumber}</p>
+                        )}
+                      </div>
+                      <div className="flex gap-1 ml-2">
+                        <Badge className={getStatusColor(task.status)}>
+                          {task.status}
+                        </Badge>
+                        <Badge className={getPriorityColor(task.priority)}>
+                          {task.priority}
+                        </Badge>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-600 mb-2">{task.description}</p>
+                    <div className="flex justify-between items-center text-xs text-gray-500">
+                      <span>
+                        {task.workHours ? `${formatHours(task.workHours)} logged` : 'No time logged'}
+                      </span>
+                      <span>{new Date(task.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                ))}
+                {filteredTasks.length === 0 && (
+                  <p className="text-center text-gray-500 py-4">No tasks found</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Recent Activity */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Activity</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {recentTasks.map((task) => (
+                  <div key={task.id} className="p-3 border rounded-lg">
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-medium text-sm">{task.title}</h4>
+                      <Badge className={getStatusColor(task.status)}>
+                        {task.status}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-gray-600 mb-2">{task.description}</p>
+                    <div className="flex justify-between items-center text-xs text-gray-500">
+                      <span>
+                        {task.project ? `Project: ${task.project.title}` : 'No project'}
+                      </span>
+                      <span>{new Date(task.updatedAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                ))}
+                {recentTasks.length === 0 && (
+                  <p className="text-center text-gray-500 py-4">No recent activity</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </>
+  );
+}
