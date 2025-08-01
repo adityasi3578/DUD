@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { AdminDashboard } from "@/components/dashboard/admin-dashboard";
-import { UserDashboard } from "@/components/dashboard/user-dashboard";
+import { AdminDashboard } from "../components/dashboard/admin-dashboard";
+import { UserDashboard } from "../components/dashboard/user-dashboard";
 import { Sidebar } from "@/components/dashboard/sidebar";
 
 export default function Dashboard() {
