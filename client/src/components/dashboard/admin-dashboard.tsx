@@ -22,6 +22,23 @@ export function AdminDashboard() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [teamFilter, setTeamFilter] = useState("all");
 
+  // Color palette for teams (consistent colors)
+  const teamColors = [
+    "bg-blue-100 text-blue-800 border-blue-200",
+    "bg-green-100 text-green-800 border-green-200", 
+    "bg-purple-100 text-purple-800 border-purple-200",
+    "bg-orange-100 text-orange-800 border-orange-200",
+    "bg-pink-100 text-pink-800 border-pink-200",
+    "bg-cyan-100 text-cyan-800 border-cyan-200",
+    "bg-indigo-100 text-indigo-800 border-indigo-200",
+    "bg-red-100 text-red-800 border-red-200"
+  ];
+
+  const getTeamColor = (teamId: string) => {
+    const teamIndex = teams.findIndex(team => team.id === teamId);
+    return teamColors[teamIndex % teamColors.length] || "bg-gray-100 text-gray-800 border-gray-200";
+  };
+
   const { data: metrics, isLoading: metricsLoading } = useQuery<AdminMetrics>({
     queryKey: ["/api/admin/metrics"],
   });
@@ -161,6 +178,23 @@ export function AdminDashboard() {
           </Card>
         </div>
 
+        {/* Team Legend */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Team Overview</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {teams.map((team) => (
+                <div key={team.id} className="flex items-center gap-2 p-2 rounded border">
+                  <div className={`w-4 h-4 rounded-full ${getTeamColor(team.id).replace("text-", "bg-").split(" ")[0]}`}></div>
+                  <span className="text-sm font-medium truncate">{team.name}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Filters */}
         <Card>
           <CardHeader>
@@ -201,7 +235,10 @@ export function AdminDashboard() {
                   <SelectItem value="all">All Teams</SelectItem>
                   {teams.map((team) => (
                     <SelectItem key={team.id} value={team.id}>
-                      {team.name}
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${getTeamColor(team.id).replace("text-", "bg-").split(" ")[0]}`}></div>
+                        {team.name}
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -260,7 +297,14 @@ export function AdminDashboard() {
                 {filteredProjects.map((project) => (
                   <div key={project.id} className="p-3 border rounded-lg">
                     <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-medium text-sm">{project.title}</h4>
+                      <div className="flex items-center gap-2 flex-1">
+                        <h4 className="font-medium text-sm">{project.title}</h4>
+                        {project.teamId && (
+                          <Badge className={`text-xs ${getTeamColor(project.teamId)}`}>
+                            {teams.find(t => t.id === project.teamId)?.name || 'Unknown Team'}
+                          </Badge>
+                        )}
+                      </div>
                       <div className="flex gap-1">
                         <Badge className={getStatusColor(project.status)}>
                           {project.status}
@@ -299,7 +343,14 @@ export function AdminDashboard() {
               {recentUpdates.map((update) => (
                 <div key={update.id} className="p-3 border rounded-lg">
                   <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-medium text-sm">{update.title}</h4>
+                    <div className="flex items-center gap-2 flex-1">
+                      <h4 className="font-medium text-sm">{update.title}</h4>
+                      {update.teamId && (
+                        <Badge className={`text-xs ${getTeamColor(update.teamId)}`}>
+                          {teams.find(t => t.id === update.teamId)?.name || 'Unknown Team'}
+                        </Badge>
+                      )}
+                    </div>
                     <Badge className={getStatusColor(update.status)}>
                       {update.status}
                     </Badge>
