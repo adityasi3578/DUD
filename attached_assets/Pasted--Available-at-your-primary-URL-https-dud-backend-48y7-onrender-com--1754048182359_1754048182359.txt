@@ -1,0 +1,136 @@
+     ==> 
+     ==> Available at your primary URL https://dud-backend-48y7.onrender.com
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
+11:33:54 AM [express] GET /api/auth/user 304 in 2939ms :: {"id":"905fd7dd-147a-496e-b569-f711ca2f8f44…
+11:33:55 AM [express] GET /api/user/teams 304 in 501ms :: [{"id":"70cb50f6-d992-4a41-98a0-3e82af3351f…
+Error fetching tasks: error: relation "tasks" does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getTasks (file:///opt/render/project/src/dist/index.js:554:12)
+    at async file:///opt/render/project/src/dist/index.js:1150:22 {
+  length: 105,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '192',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+11:33:56 AM [express] GET /api/tasks 500 in 1467ms :: {"message":"Failed to fetch tasks"}
+Error fetching team updates: error: column user_updates.task_id does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getTeamUpdates (file:///opt/render/project/src/dist/index.js:437:12)
+    at async file:///opt/render/project/src/dist/index.js:1052:23 {
+  length: 186,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: 'Perhaps you meant to reference the column "user_updates.team_id".',
+  position: '110',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3723',
+  routine: 'errorMissingColumn'
+}
+11:34:04 AM [express] GET /api/teams 304 in 1459ms :: [{"id":"9fead981-3e4b-4750-9db5-8b8a1700d86d","…
+11:34:04 AM [express] GET /api/teams/9fead981-3e4b-4750-9db5-8b8a1700d86d/updates 500 in 1470ms :: {"…
+11:34:05 AM [express] GET /api/teams/9fead981-3e4b-4750-9db5-8b8a1700d86d/members 200 in 2443ms :: [{…
+11:34:05 AM [express] GET /api/teams/9fead981-3e4b-4750-9db5-8b8a1700d86d/projects 304 in 2469ms :: […
+Error fetching team metrics: error: function sum() does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getTeamMetrics (file:///opt/render/project/src/dist/index.js:449:31)
+    at async file:///opt/render/project/src/dist/index.js:1062:23 {
+  length: 198,
+  severity: 'ERROR',
+  code: '42883',
+  detail: undefined,
+  hint: 'No function matches the given name and argument types. You might need to add explicit type casts.',
+  position: '17',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_func.c',
+  line: '629',
+  routine: 'ParseFuncOrColumn'
+}
+11:34:05 AM [express] GET /api/teams/9fead981-3e4b-4750-9db5-8b8a1700d86d/metrics 500 in 2738ms :: {"…
+Error fetching tasks: error: relation "tasks" does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getTasks (file:///opt/render/project/src/dist/index.js:554:12)
+    at async file:///opt/render/project/src/dist/index.js:1150:22 {
+  length: 105,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '192',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+11:34:15 AM [express] GET /api/tasks 500 in 489ms :: {"message":"Failed to fetch tasks"}
+     ==> Detected service running on port 10000
+     ==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+Error creating task: error: relation "tasks" does not exist
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.createTask (file:///opt/render/project/src/dist/index.js:561:20)
+    at async file:///opt/render/project/src/dist/index.js:1178:20 {
+  length: 104,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '13',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+11:35:06 AM [express] POST /api/tasks 500 in 2534ms :: {"message":"Failed to create task"}

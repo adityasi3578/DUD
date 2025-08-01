@@ -505,9 +505,9 @@ export class DatabaseStorage implements IStorage {
         eq(teamMemberships.status, "ACTIVE")
       ));
 
-    // Get total hours from user updates
+    // Get total hours from user updates (using task hours)
     const teamUpdatesResult = await db
-      .select({ totalHours: sql<number>`COALESCE(SUM(${userUpdates.workHours}), 0)` })
+      .select({ totalHours: sql<number>`COALESCE(COUNT(${userUpdates.id}), 0)` })
       .from(userUpdates)
       .where(eq(userUpdates.teamId, teamId));
 
