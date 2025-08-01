@@ -11,12 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { insertGoalSchema, type Goal } from "@shared/schema";
+import { insertUserUpdateSchema, type UserUpdate, type Team, type TeamMembership } from "@shared/schema";
 import { z } from "zod";
 import { Sidebar } from "@/components/dashboard/sidebar";
 
-const formSchema = insertGoalSchema.extend({
-  target: z.coerce.number().min(1).max(1000),
+const formSchema = insertUserUpdateSchema.extend({
+  workHours: z.coerce.number().min(0).max(24),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -30,8 +30,13 @@ export default function Tasks() {
     document.title = "Tasks & Goals - MyTools";
   }, []);
 
-  const { data: goals, isLoading } = useQuery<Goal[]>({
-    queryKey: ["/api/goals"],
+  const { data: tasks, isLoading } = useQuery<UserUpdate[]>({
+    queryKey: ["/api/user-updates"],
+  });
+
+  // Get user's teams for task creation
+  const { data: userTeams = [] } = useQuery<(TeamMembership & { team: Team })[]>({
+    queryKey: ["/api/user/teams"],
   });
 
   const {
@@ -44,22 +49,27 @@ export default function Tasks() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
-      target: 1,
-      type: "tasks",
+      description: "",
+      ticketNumber: "",
+      workHours: 0,
+      status: "IN_PROGRESS",
+      priority: "MEDIUM",
+      teamId: "",
+      projectId: "",
     },
   });
 
-  const createGoalMutation = useMutation({
+  const createTaskMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const response = await apiRequest("/api/goals", "POST", data);
+      const response = await apiRequest("/api/user-updates", "POST", data);
       return response.json();
     },
     onSuccess: () => {
       toast({
-        title: "Goal Created",
-        description: "Your new goal has been created successfully.",
+        title: "Task Created",
+        description: "Your new task has been created successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/goals"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user-updates"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
       reset();
       setIsDialogOpen(false);
@@ -67,36 +77,34 @@ export default function Tasks() {
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to create goal. Please try again.",
+        description: "Failed to create task. Please try again.",
         variant: "destructive",
       });
     },
   });
 
   const onSubmit = (data: FormData) => {
-    createGoalMutation.mutate(data);
+    createTaskMutation.mutate(data);
   };
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "tasks":
-        return <CheckCircle className="w-5 h-5 text-blue-600" />;
-      case "hours":
-        return <Target className="w-5 h-5 text-green-600" />;
-      case "exercise":
-        return <Target className="w-5 h-5 text-orange-600" />;
-      case "reading":
-        return <Target className="w-5 h-5 text-purple-600" />;
-      default:
-        return <Target className="w-5 h-5 text-gray-600" />;
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "COMPLETED": return "bg-green-100 text-green-800";
+      case "IN_PROGRESS": return "bg-blue-100 text-blue-800";
+      case "BLOCKED": return "bg-red-100 text-red-800";
+      case "REVIEW": return "bg-yellow-100 text-yellow-800";
+      default: return "bg-gray-100 text-gray-800";
     }
   };
 
-  const getProgressColor = (percentage: number) => {
-    if (percentage >= 80) return "bg-green-500";
-    if (percentage >= 60) return "bg-blue-500";
-    if (percentage >= 40) return "bg-yellow-500";
-    return "bg-red-500";
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "URGENT": return "bg-red-100 text-red-800";
+      case "HIGH": return "bg-orange-100 text-orange-800";
+      case "MEDIUM": return "bg-blue-100 text-blue-800";
+      case "LOW": return "bg-gray-100 text-gray-800";
+      default: return "bg-gray-100 text-gray-800";
+    }
   };
 
   return (
@@ -106,26 +114,26 @@ export default function Tasks() {
         <header className="bg-white border-b border-slate-200 px-4 lg:px-6 py-4 pt-16 lg:pt-4">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
             <div>
-              <h2 className="text-xl lg:text-2xl font-semibold text-slate-900">Tasks & Goals</h2>
-              <p className="text-slate-600 mt-1 text-sm lg:text-base">Manage your goals and track progress</p>
+              <h2 className="text-xl lg:text-2xl font-semibold text-slate-900">Tasks</h2>
+              <p className="text-slate-600 mt-1 text-sm lg:text-base">Manage your tasks and track progress</p>
             </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-primary hover:bg-primary/90 w-full lg:w-auto">
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Goal
+                  Add Task
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-md">
                 <DialogHeader>
-                  <DialogTitle>Create New Goal</DialogTitle>
+                  <DialogTitle>Create New Task</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                   <div>
-                    <Label htmlFor="title">Goal Title</Label>
+                    <Label htmlFor="title">Task Title</Label>
                     <Input
                       id="title"
-                      placeholder="e.g., Complete 50 tasks this month"
+                      placeholder="e.g., Implement user authentication"
                       {...register("title")}
                     />
                     {errors.title && (
@@ -134,32 +142,93 @@ export default function Tasks() {
                   </div>
 
                   <div>
-                    <Label htmlFor="type">Goal Type</Label>
-                    <Select onValueChange={(value) => setValue("type", value)} defaultValue="tasks">
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="tasks">Tasks</SelectItem>
-                        <SelectItem value="hours">Hours</SelectItem>
-                        <SelectItem value="exercise">Exercise</SelectItem>
-                        <SelectItem value="reading">Reading</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="description">Description</Label>
+                    <Input
+                      id="description"
+                      placeholder="Task description"
+                      {...register("description")}
+                    />
+                    {errors.description && (
+                      <p className="text-sm text-red-500 mt-1">{errors.description.message}</p>
+                    )}
                   </div>
 
                   <div>
-                    <Label htmlFor="target">Target</Label>
+                    <Label htmlFor="teamId">Team</Label>
+                    <Select onValueChange={(value) => setValue("teamId", value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a team" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {userTeams.map((teamMembership) => (
+                          <SelectItem key={teamMembership.team.id} value={teamMembership.team.id}>
+                            {teamMembership.team.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.teamId && (
+                      <p className="text-sm text-red-500 mt-1">{errors.teamId.message}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="ticketNumber">Ticket Number</Label>
                     <Input
-                      id="target"
-                      type="number"
-                      min="1"
-                      max="1000"
-                      placeholder="50"
-                      {...register("target")}
+                      id="ticketNumber"
+                      placeholder="e.g., TASK-001"
+                      {...register("ticketNumber")}
                     />
-                    {errors.target && (
-                      <p className="text-sm text-red-500 mt-1">{errors.target.message}</p>
+                    {errors.ticketNumber && (
+                      <p className="text-sm text-red-500 mt-1">{errors.ticketNumber.message}</p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="priority">Priority</Label>
+                      <Select onValueChange={(value) => setValue("priority", value as any)} defaultValue="MEDIUM">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="LOW">Low</SelectItem>
+                          <SelectItem value="MEDIUM">Medium</SelectItem>
+                          <SelectItem value="HIGH">High</SelectItem>
+                          <SelectItem value="URGENT">Urgent</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="status">Status</Label>
+                      <Select onValueChange={(value) => setValue("status", value as any)} defaultValue="IN_PROGRESS">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                          <SelectItem value="COMPLETED">Completed</SelectItem>
+                          <SelectItem value="BLOCKED">Blocked</SelectItem>
+                          <SelectItem value="REVIEW">Review</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="workHours">Work Hours</Label>
+                    <Input
+                      id="workHours"
+                      type="number"
+                      min="0"
+                      max="24"
+                      step="0.5"
+                      placeholder="8"
+                      {...register("workHours")}
+                    />
+                    {errors.workHours && (
+                      <p className="text-sm text-red-500 mt-1">{errors.workHours.message}</p>
                     )}
                   </div>
 
@@ -167,9 +236,9 @@ export default function Tasks() {
                     <Button 
                       type="submit" 
                       className="flex-1" 
-                      disabled={createGoalMutation.isPending}
+                      disabled={createTaskMutation.isPending}
                     >
-                      {createGoalMutation.isPending ? "Creating..." : "Create Goal"}
+                      {createTaskMutation.isPending ? "Creating..." : "Create Task"}
                     </Button>
                     <Button 
                       type="button" 
@@ -197,17 +266,16 @@ export default function Tasks() {
                   </CardContent>
                 </Card>
               ))
-            ) : goals && goals.length > 0 ? (
-              goals.map((goal) => {
-                const progressPercentage = Math.round((goal.current / goal.target) * 100);
+            ) : tasks && tasks.length > 0 ? (
+              tasks.map((task) => {
                 
                 return (
-                  <Card key={goal.id} className="hover:shadow-lg transition-shadow">
+                  <Card key={task.id} className="hover:shadow-lg transition-shadow">
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
-                          {getTypeIcon(goal.type)}
-                          <CardTitle className="text-lg">{goal.title}</CardTitle>
+                          <CheckCircle className="w-5 h-5 text-blue-600" />
+                          <CardTitle className="text-lg">{task.title}</CardTitle>
                         </div>
                         <div className="flex space-x-1">
                           <Button variant="ghost" size="sm">
@@ -221,30 +289,36 @@ export default function Tasks() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
+                        <p className="text-sm text-slate-600">{task.description}</p>
+                        
                         <div className="flex items-center justify-between">
-                          <span className="text-2xl font-bold text-slate-900">
-                            {goal.current}
-                          </span>
-                          <span className="text-sm text-slate-500">
-                            of {goal.target} {goal.type}
+                          <span className="text-sm font-medium">Status:</span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
+                            {task.status.replace('_', ' ')}
                           </span>
                         </div>
-                        
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between text-sm">
-                            <span>Progress</span>
-                            <span className="font-medium">{progressPercentage}%</span>
+
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">Priority:</span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
+                            {task.priority}
+                          </span>
+                        </div>
+
+                        {task.ticketNumber && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">Ticket:</span>
+                            <span className="text-sm text-slate-600">{task.ticketNumber}</span>
                           </div>
-                          <div className="w-full bg-slate-200 rounded-full h-2">
-                            <div
-                              className={`h-2 rounded-full transition-all ${getProgressColor(progressPercentage)}`}
-                              style={{ width: `${Math.min(progressPercentage, 100)}%` }}
-                            ></div>
-                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">Work Hours:</span>
+                          <span className="text-sm text-slate-600">{task.workHours}h</span>
                         </div>
 
                         <div className="text-xs text-slate-500">
-                          Created {new Date(goal.createdAt).toLocaleDateString()}
+                          Created: {new Date(task.createdAt).toLocaleDateString()}
                         </div>
                       </div>
                     </CardContent>
@@ -252,20 +326,14 @@ export default function Tasks() {
                 );
               })
             ) : (
-              <div className="col-span-full">
-                <Card>
-                  <CardContent className="text-center py-12">
-                    <Target className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-slate-900 mb-2">No goals yet</h3>
-                    <p className="text-slate-600 mb-4">
-                      Create your first goal to start tracking your progress
-                    </p>
-                    <Button onClick={() => setIsDialogOpen(true)}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Your First Goal
-                    </Button>
-                  </CardContent>
-                </Card>
+              <div className="col-span-full text-center py-12">
+                <Target className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">No tasks yet</h3>
+                <p className="text-slate-600 mb-4">Create your first task to get started with tracking your work.</p>
+                <Button onClick={() => setIsDialogOpen(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Task
+                </Button>
               </div>
             )}
           </div>
