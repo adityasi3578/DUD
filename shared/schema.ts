@@ -40,7 +40,6 @@ export const users = pgTable("users", {
 // Teams table
 export const teams = pgTable("teams", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  ticketNumber: varchar("ticket_number"),
   name: varchar("name").notNull(),
   description: varchar("description"),
   createdBy: varchar("created_by").references(() => users.id),
@@ -96,6 +95,7 @@ export const projectUpdates = pgTable("project_updates", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   projectId: varchar("project_id").notNull(),
   userId: varchar("user_id").notNull(),
+  ticketNumber: varchar("ticket_number"),
   title: text("title").notNull(),
   description: text("description").notNull(),
   status: text("status").notNull(), // progress, blocked, completed, issue

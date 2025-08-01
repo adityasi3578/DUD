@@ -22,6 +22,8 @@ export function ProjectUpdates({ projectId }: ProjectUpdatesProps) {
     description: "",
     status: "progress",
     hoursWorked: 0,
+    ticketNumber: "",
+    ticketNumber: "",
   });
 
   const queryClient = useQueryClient();
@@ -29,7 +31,6 @@ export function ProjectUpdates({ projectId }: ProjectUpdatesProps) {
 
   const { data: updates = [], isLoading } = useQuery<ProjectUpdate[]>({
     queryKey: ["/api/projects", projectId, "updates"],
-    queryFn: () => apiRequest(`/api/projects/${projectId}/updates`),
   });
 
   const createUpdateMutation = useMutation({
@@ -43,6 +44,8 @@ export function ProjectUpdates({ projectId }: ProjectUpdatesProps) {
         description: "",
         status: "progress",
         hoursWorked: 0,
+        ticketNumber: "",
+        ticketNumber: "",
       });
       toast({
         title: "Success",
@@ -119,11 +122,18 @@ export function ProjectUpdates({ projectId }: ProjectUpdatesProps) {
             <CardTitle>Add Project Update</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Input
-              placeholder="Update title"
-              value={newUpdate.title}
-              onChange={(e) => setNewUpdate({ ...newUpdate, title: e.target.value })}
-            />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <Input
+                placeholder="Update title"
+                value={newUpdate.title}
+                onChange={(e) => setNewUpdate({ ...newUpdate, title: e.target.value })}
+              />
+              <Input
+                placeholder="Ticket Number (optional, e.g., UPD-123)"
+                value={newUpdate.ticketNumber || ""}
+                onChange={(e) => setNewUpdate({ ...newUpdate, ticketNumber: e.target.value })}
+              />
+            </div>
             <Textarea
               placeholder="Describe what you've worked on..."
               value={newUpdate.description}
@@ -170,7 +180,12 @@ export function ProjectUpdates({ projectId }: ProjectUpdatesProps) {
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div className="flex items-center gap-2">
                 {getStatusIcon(update.status)}
-                <CardTitle className="text-lg">{update.title}</CardTitle>
+                <div>
+                  <CardTitle className="text-lg">{update.title}</CardTitle>
+                  {update.ticketNumber && (
+                    <p className="text-sm text-gray-500">#{update.ticketNumber}</p>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <Badge className={getStatusColor(update.status)}>

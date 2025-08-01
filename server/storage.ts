@@ -304,9 +304,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createProjectUpdate(userId: string, update: InsertProjectUpdate): Promise<ProjectUpdate> {
+    // Auto-generate ticket number if not provided
+    const ticketNumber = update.ticketNumber || `UPD-${Date.now().toString().slice(-6)}`;
+    
     const [newUpdate] = await db
       .insert(projectUpdates)
-      .values({ ...update, userId })
+      .values({ ...update, ticketNumber, userId })
       .returning();
     return newUpdate;
   }
@@ -390,12 +393,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTeam(userId: string, team: InsertTeam): Promise<Team> {
-    // Auto-generate ticket number if not provided
-    const ticketNumber = team.ticketNumber || `TEAM-${Date.now().toString().slice(-6)}`;
-    
     const [newTeam] = await db
       .insert(teams)
-      .values({ ...team, ticketNumber, createdBy: userId })
+      .values({ ...team, createdBy: userId })
       .returning();
     return newTeam;
   }
