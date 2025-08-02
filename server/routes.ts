@@ -1,8 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
-import { authenticateUser, createUser } from "./auth";
-import { insertDailyUpdateSchema, insertGoalSchema, insertProjectSchema, insertProjectUpdateSchema, insertUserUpdateSchema, insertTaskSchema } from "@shared/schema";
+import { storage } from "./storage.ts";
+import { authenticateUser, createUser } from "./auth.ts";
+import { insertDailyUpdateSchema, insertGoalSchema, insertProjectSchema, insertProjectUpdateSchema, insertUserUpdateSchema, insertTaskSchema } from "@shared/schema.ts";
 import { z } from "zod";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
