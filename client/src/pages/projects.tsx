@@ -14,7 +14,7 @@ import { Sidebar } from "@/components/dashboard/sidebar";
 
 export default function Projects() {
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newProject, setNewProject] = useState<InsertProject>({
+  const [newProject, setNewProject] = useState<Omit<InsertProject, 'userId'>>({
     title: "",
     teamId: "",
     description: "",
@@ -35,7 +35,7 @@ export default function Projects() {
   });
 
   const createProjectMutation = useMutation({
-    mutationFn: (project: InsertProject) => apiRequest("/api/projects", "POST", project),
+    mutationFn: (project: Omit<InsertProject, 'userId'>) => apiRequest("/api/projects", "POST", project),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
       setShowCreateForm(false);
@@ -61,7 +61,7 @@ export default function Projects() {
   });
 
   const updateProjectMutation = useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Partial<InsertProject> }) =>
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<Omit<InsertProject, 'userId'>> }) =>
       apiRequest(`/api/projects/${id}`, "PUT", updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });

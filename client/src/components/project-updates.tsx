@@ -17,7 +17,7 @@ interface ProjectUpdatesProps {
 
 export function ProjectUpdates({ projectId }: ProjectUpdatesProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newUpdate, setNewUpdate] = useState<Omit<InsertProjectUpdate, 'projectId'>>({
+  const [newUpdate, setNewUpdate] = useState<Omit<InsertProjectUpdate, 'projectId' | 'userId'>>({
     title: "",
     description: "",
     status: "progress",
@@ -39,7 +39,7 @@ export function ProjectUpdates({ projectId }: ProjectUpdatesProps) {
   });
 
   const createUpdateMutation = useMutation({
-    mutationFn: (update: Omit<InsertProjectUpdate, 'projectId'>) => 
+    mutationFn: (update: Omit<InsertProjectUpdate, 'projectId' | 'userId'>) =>
       apiRequest(`/api/projects/${projectId}/updates`, "POST", { ...update, projectId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "updates"] });
@@ -179,7 +179,12 @@ export function ProjectUpdates({ projectId }: ProjectUpdatesProps) {
                 type="number"
                 placeholder="Hours worked"
                 value={newUpdate.hoursWorked?.toString() || ""}
-                onChange={(e) => setNewUpdate({ ...newUpdate, hoursWorked: parseInt(e.target.value) || 0 })}
+                onChange={(e) =>
+                  setNewUpdate({
+                    ...newUpdate,
+                    hoursWorked: parseInt(e.target.value) || 0,
+                  })
+                }
               />
             </div>
             <div className="flex gap-2">
@@ -211,7 +216,7 @@ export function ProjectUpdates({ projectId }: ProjectUpdatesProps) {
                 <Badge className={getStatusColor(update.status)}>
                   {update.status}
                 </Badge>
-                {update.hoursWorked > 0 && (
+                {update.hoursWorked != null && update.hoursWorked > 0 && (
                   <Badge variant="outline">
                     {update.hoursWorked}h
                   </Badge>

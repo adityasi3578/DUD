@@ -501,10 +501,7 @@ export default function TeamDashboard() {
                                   {update.project.title}
                                 </span>
                               )}
-                              <span className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                {update.workHours}h
-                              </span>
+                              {/* Removed workHours display as updates don't include hours */}
                               <span className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
                                 {new Date(update.createdAt).toLocaleDateString()}
