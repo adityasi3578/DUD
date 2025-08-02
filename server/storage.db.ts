@@ -34,7 +34,7 @@ import {
   type InsertTask,
 } from "@shared/schema.ts";
 
-import { IStorage } from "./storage.impl.ts";
+import type { IStorage } from "./storage.impl";
 
 export const dbStorage: IStorage = {
   async getUser(id) {

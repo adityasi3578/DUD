@@ -1,5 +1,5 @@
+import { defineConfig, type PluginOption } from 'vite';
 // @ts-nocheck
-import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -8,12 +8,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export default defineConfig(async () => {
-  const plugins = [react()];
+  const plugins: PluginOption[] = [react()];
 
   if (process.env.NODE_ENV !== 'production' && process.env.REPL_ID) {
     const runtimeErrorModal = await import('@replit/vite-plugin-runtime-error-modal');
     const cartographer = await import('@replit/vite-plugin-cartographer');
-    plugins.push(runtimeErrorModal.default(), cartographer.cartographer());
+    plugins.push(runtimeErrorModal.default());
+    plugins.push(cartographer.cartographer());
   }
 
   return {

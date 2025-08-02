@@ -33,7 +33,7 @@ import {
   type InsertTask,
 } from "@shared/schema.ts";
 
-import { IStorage } from "./storage.impl.ts";
+import type { IStorage } from "./storage.impl";
 
 function now(): Date {
   return new Date();
