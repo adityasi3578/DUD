@@ -13,13 +13,13 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Setup SSH
-      uses: webfactory/ssh-agent@v0.8.1
+      uses: webfactory/ssh-agent@v0.5.4
       with:
         ssh-private-key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
 
     - name: Deploy code to GCP VM
       run: |
-        ssh -o StrictHostKeyChecking=no adityasdud@<GCP_VM_IP> << 'EOF'
+        ssh -o StrictHostKeyChecking=no adityasdud@${{ secrets.GCP_VM_IP }} << 'EOF'
           # Clone repo if not already
           cd ~/DUD || (git clone https://github.com/adityasi3578/DUD.git && cd DUD)
 
@@ -33,9 +33,9 @@ jobs:
           # Install dependencies
           npm install
 
-          # Build TypeScript
+          # Build TypeScript to JavaScript
           npx tsc
 
-          # Start or restart server
+          # Start or restart the backend using PM2
           pm2 restart dist/index.js || pm2 start dist/index.js --name dud-backend
         EOF
