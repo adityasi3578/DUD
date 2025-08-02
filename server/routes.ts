@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage.ts";
 import { authenticateUser, createUser } from "./auth.ts";
-import { insertDailyUpdateSchema, insertGoalSchema, insertProjectSchema, insertProjectUpdateSchema, insertUserUpdateSchema, insertTaskSchema } from "@shared/schema.ts";
+import { insertDailyUpdateSchema, insertGoalSchema, insertProjectSchema, insertProjectUpdateSchema, insertUserUpdateSchema, insertTaskSchema, type Task, type Goal } from "@shared/schema.ts";
 import { z } from "zod";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -309,21 +309,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get tasks completed today vs yesterday
       const allUserTasks = await storage.getUserTasks(userId);
-      const todayCompletedTasks = allUserTasks.filter(task => 
-        task.status === "COMPLETED" && 
+      const todayCompletedTasks = allUserTasks.filter((task: Task) =>
+        task.status === "COMPLETED" &&
         task.updatedAt?.toISOString().split('T')[0] === today
       ).length;
-      
-      const yesterdayCompletedTasks = allUserTasks.filter(task => 
-        task.status === "COMPLETED" && 
+
+      const yesterdayCompletedTasks = allUserTasks.filter((task: Task) =>
+        task.status === "COMPLETED" &&
         task.updatedAt?.toISOString().split('T')[0] === yesterday
       ).length;
 
       const tasksChange = todayCompletedTasks - yesterdayCompletedTasks;
 
       // Calculate total goal progress
-      const totalGoalProgress = goals.length > 0 
-        ? Math.round(goals.reduce((sum, goal) => sum + (goal.current / goal.target), 0) / goals.length * 100)
+      const totalGoalProgress = goals.length > 0
+        ? Math.round(
+            goals.reduce((sum: number, goal: Goal) => sum + goal.current / goal.target, 0) /
+            goals.length *
+            100
+          )
         : 0;
 
       // Calculate hours worked from actual tasks
@@ -336,8 +340,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Calculate streak from recent activity
       const recentTasks = allUserTasks
-        .filter(task => task.status === "COMPLETED")
-        .sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime());
+        .filter((task: Task) => task.status === "COMPLETED")
+        .sort(
+          (a: Task, b: Task) =>
+            new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime()
+        );
       
       let streak = 0;
       const dates = new Set();
