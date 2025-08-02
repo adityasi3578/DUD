@@ -20,22 +20,25 @@ jobs:
     - name: Deploy code to GCP VM
       run: |
         ssh -o StrictHostKeyChecking=no adityasdud@${{ secrets.GCP_VM_IP }} << 'EOF'
-          # Clone repo if not already
+          # Increase memory for TypeScript compiler
+          export NODE_OPTIONS="--max-old-space-size=2048"
+
+          # Clone repo if not already present
           cd ~/DUD || (git clone https://github.com/adityasi3578/DUD.git && cd DUD)
 
           # Pull latest changes
           cd ~/DUD
           git pull origin main
 
-          # Move to server directory
+          # Move to backend directory
           cd server
 
-          # Install dependencies
+          # Install backend dependencies
           npm install
 
-          # Build TypeScript to JavaScript
+          # Compile TypeScript (output to dist/)
           npx tsc
 
-          # Start or restart the backend using PM2
+          # Start or restart server using PM2
           pm2 restart dist/index.js || pm2 start dist/index.js --name dud-backend
         EOF
