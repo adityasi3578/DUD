@@ -42,3 +42,4 @@ jobs:
           # Run/restart server using PM2
           pm2 restart dist/index.js || pm2 start dist/index.js --name dud-backend
         EOF
+        
