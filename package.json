@@ -3,11 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "license": "MIT",
-  "type": "commonjs",
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
-    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=cjs --outdir=dist",
-    "build:server": "esbuild server/index.ts --platform=node --packages=external --bundle --format=cjs --outdir=dist && npm run build:gh-pages",
+    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
+    "build:server": "esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist && npm run build:gh-pages",
     "build:gh-pages": "vite build",
     "start": "NODE_ENV=production node dist/index.js",
     "check": "tsc",

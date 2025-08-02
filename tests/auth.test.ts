@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgres://user:pass@localhost/db';
-const { hashPassword, verifyPassword } = await import('../server/auth');
+import { hashPassword, verifyPassword } from '../server/auth';
+
+process.env.DATABASE_URL =
+  process.env.DATABASE_URL || 'postgres://user:pass@localhost/db';
 
 // Ensure hashing returns a value different from the original
 test('hashPassword returns different value', async () => {
