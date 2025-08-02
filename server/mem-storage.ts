@@ -1,5 +1,15 @@
-import { randomUUID } from 'crypto';
+import { randomUUID } from "crypto";
 import {
+  users,
+  teams,
+  teamMemberships,
+  dailyUpdates,
+  goals,
+  activities,
+  projects,
+  projectUpdates,
+  userUpdates,
+  tasks,
   type User,
   type InsertUser,
   type Team,
@@ -16,244 +26,328 @@ import {
   type InsertProject,
   type ProjectUpdate,
   type InsertProjectUpdate,
-} from '@shared/schema';
-import type { IStorage } from './storage';
+  type UserUpdate,
+  type InsertUserUpdate,
+  type Task,
+  type InsertTask,
+} from "@shared/schema";
+
+import { IStorage } from "./storage";
+
+function now(): Date {
+  return new Date();
+}
+
+function uuid(): string {
+  return randomUUID();
+}
 
 export class MemStorage implements IStorage {
-  private users = new Map<string, User>();
-  private teams = new Map<string, Team>();
-  private memberships = new Map<string, TeamMembership>();
-  private dailyUpdates = new Map<string, DailyUpdate>();
-  private goals = new Map<string, Goal>();
-  private activities = new Map<string, Activity>();
-  private projects = new Map<string, Project>();
-  private projectUpdates = new Map<string, ProjectUpdate>();
+  private _users: User[] = [];
+  private _dailyUpdates: DailyUpdate[] = [];
+  private _projects: Project[] = [];
+  private _tasks: Task[] = [];
+  private _userUpdates: UserUpdate[] = [];
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  async getUser(id: string) {
+    return this._users.find((u) => u.id === id);
   }
 
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    for (const user of this.users.values()) {
-      if (user.email === email) return user;
-    }
-    return undefined;
+  async getUserByEmail(email: string) {
+    return this._users.find((u) => u.email === email);
   }
 
-  async createUser(data: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const now = new Date();
-    const user: User = {
-      id,
-      createdAt: now,
-      updatedAt: now,
-      role: 'USER',
-      status: 'PENDING',
-      profileImageUrl: null,
-      ...data,
-    } as User;
-    this.users.set(id, user);
+  async createUser(user: InsertUser) {
+    const newUser: User = {
+      ...user,
+      id: uuid(),
+      createdAt: now(),
+    };
+    this._users.push(newUser);
+    return newUser;
+  }
+
+  async upsertUser(user: InsertUser) {
+    const existing = await this.getUser(user.id);
+    if (existing) return existing;
+    return this.createUser(user);
+  }
+
+  async updateUserStatus(userId: string, status: string) {
+    const user = await this.getUser(userId);
+    if (!user) throw new Error("User not found");
+    user.status = status;
     return user;
   }
 
-  async updateUserStatus(userId: string, status: string): Promise<User> {
-    const user = this.users.get(userId);
-    if (!user) throw new Error('User not found');
-    user.status = status as any;
-    user.updatedAt = new Date();
-    this.users.set(userId, user);
+  async updateUserRole(userId: string, role: string) {
+    const user = await this.getUser(userId);
+    if (!user) throw new Error("User not found");
+    user.role = role;
     return user;
   }
 
-  async updateUserRole(userId: string, role: string): Promise<User> {
-    const user = this.users.get(userId);
-    if (!user) throw new Error('User not found');
-    user.role = role as any;
-    user.updatedAt = new Date();
-    this.users.set(userId, user);
-    return user;
+  async getDailyUpdate(userId: string, date: string) {
+    return this._dailyUpdates.find((u) => u.userId === userId && u.date === date);
   }
 
-  private dailyKey(userId: string, date: string) {
-    return `${userId}:${date}`;
+  async getDailyUpdates(userId: string) {
+    return this._dailyUpdates.filter((u) => u.userId === userId);
   }
 
-  async getDailyUpdate(userId: string, date: string): Promise<DailyUpdate | undefined> {
-    return this.dailyUpdates.get(this.dailyKey(userId, date));
+  async createDailyUpdate(userId: string, update: InsertDailyUpdate) {
+    const newUpdate: DailyUpdate = {
+      id: uuid(),
+      createdAt: now(),
+      userId,
+      tasksCompleted: update.tasksCompleted ?? 0,
+      hoursWorked: update.hoursWorked ?? 0,
+      mood: update.mood ?? 0,
+      notes: update.notes ?? null,
+      date: update.date,
+    };
+    this._dailyUpdates.push(newUpdate);
+    return newUpdate;
   }
 
-  async getDailyUpdates(userId: string): Promise<DailyUpdate[]> {
-    return Array.from(this.dailyUpdates.values())
-      .filter(u => u.userId === userId)
-      .sort((a, b) => b.date.localeCompare(a.date));
+  async updateDailyUpdate(userId: string, date: string, update: Partial<InsertDailyUpdate>) {
+    const existing = await this.getDailyUpdate(userId, date);
+    if (!existing) throw new Error("Update not found");
+    Object.assign(existing, update);
+    return existing;
   }
 
-  async createDailyUpdate(userId: string, update: InsertDailyUpdate): Promise<DailyUpdate> {
-    const id = randomUUID();
-    const daily: DailyUpdate = { id, userId, createdAt: new Date(), ...update } as DailyUpdate;
-    this.dailyUpdates.set(this.dailyKey(userId, update.date), daily);
-    await this.createActivity(userId, { type: 'task_completed', description: `Completed ${update.tasksCompleted || 0} tasks` });
-    return daily;
+  async getGoals(userId: string) {
+    return [];
   }
 
-  async updateDailyUpdate(userId: string, date: string, update: Partial<InsertDailyUpdate>): Promise<DailyUpdate> {
-    const key = this.dailyKey(userId, date);
-    const existing = this.dailyUpdates.get(key);
-    if (!existing) throw new Error('Daily update not found');
-    const updated: DailyUpdate = { ...existing, ...update } as DailyUpdate;
-    this.dailyUpdates.set(key, updated);
-    return updated;
+  async createGoal(userId: string, goal: InsertGoal) {
+    return { ...goal, id: uuid(), userId, createdAt: now(), updatedAt: now() };
   }
 
-  async getGoals(userId: string): Promise<Goal[]> {
-    return Array.from(this.goals.values()).filter(g => g.userId === userId && g.isActive);
+  async updateGoal(goalId: string, updates: Partial<Goal>) {
+    throw new Error("Not implemented in memory");
   }
 
-  async createGoal(userId: string, goal: InsertGoal): Promise<Goal> {
-    const id = randomUUID();
-    const newGoal: Goal = { id, userId, current: 0, isActive: true, createdAt: new Date(), ...goal } as Goal;
-    this.goals.set(id, newGoal);
-    await this.createActivity(userId, { type: 'goal_added', description: `Added new goal: ${goal.title}` });
-    return newGoal;
+  async getActivities(userId: string, limit = 5) {
+    return [];
   }
 
-  async updateGoal(goalId: string, updates: Partial<Goal>): Promise<Goal> {
-    const goal = this.goals.get(goalId);
-    if (!goal) throw new Error('Goal not found');
-    const updated = { ...goal, ...updates } as Goal;
-    this.goals.set(goalId, updated);
-    return updated;
+  async createActivity(userId: string, activity: InsertActivity) {
+    return { ...activity, id: uuid(), createdAt: now(), userId };
   }
 
-  async getActivities(userId: string, limit = 10): Promise<Activity[]> {
-    return Array.from(this.activities.values())
-      .filter(a => a.userId === userId)
-      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
-      .slice(0, limit);
+  async getProjects(userId: string) {
+    return this._projects.filter((p) => p.userId === userId);
   }
 
-  async createActivity(userId: string, activity: InsertActivity): Promise<Activity> {
-    const id = randomUUID();
-    const act: Activity = { id, userId, timestamp: new Date(), ...activity } as Activity;
-    this.activities.set(id, act);
-    return act;
+  async getProject(projectId: string) {
+    return this._projects.find((p) => p.id === projectId);
   }
 
-  async getProjects(userId: string): Promise<Project[]> {
-    return Array.from(this.projects.values()).filter(p => p.userId === userId);
+  async createProject(userId: string, project: InsertProject) {
+    const newProject: Project = {
+      ...project,
+      id: uuid(),
+      createdAt: now(),
+      updatedAt: now(),
+      userId,
+      status: project.status ?? "active",
+      description: project.description ?? null,
+      ticketNumber: project.ticketNumber ?? null,
+      priority: project.priority ?? "normal",
+      dueDate: project.dueDate ?? null,
+    };
+    this._projects.push(newProject);
+    return newProject;
   }
 
-  async getProject(projectId: string): Promise<Project | undefined> {
-    return this.projects.get(projectId);
+  async updateProject(projectId: string, updates: Partial<InsertProject>) {
+    const existing = await this.getProject(projectId);
+    if (!existing) throw new Error("Project not found");
+    Object.assign(existing, updates);
+    existing.updatedAt = now();
+    return existing;
   }
 
-  async createProject(userId: string, project: InsertProject): Promise<Project> {
-    const id = randomUUID();
-    const now = new Date();
-    const proj: Project = { id, userId, createdAt: now, updatedAt: now, ...project } as Project;
-    this.projects.set(id, proj);
-    return proj;
+  async getProjectUpdates(projectId: string) {
+    return [];
   }
 
-  async updateProject(projectId: string, updates: Partial<InsertProject>): Promise<Project> {
-    const project = this.projects.get(projectId);
-    if (!project) throw new Error('Project not found');
-    const updated = { ...project, ...updates, updatedAt: new Date() } as Project;
-    this.projects.set(projectId, updated);
-    return updated;
+  async createProjectUpdate(userId: string, update: InsertProjectUpdate) {
+    return { ...update, id: uuid(), userId, createdAt: now() };
   }
 
-  async getProjectUpdates(projectId: string): Promise<ProjectUpdate[]> {
-    return Array.from(this.projectUpdates.values()).filter(u => u.projectId === projectId);
+  async getUserUpdates(userId: string) {
+    return this._userUpdates.filter((u) => u.userId === userId);
   }
 
-  async createProjectUpdate(userId: string, update: InsertProjectUpdate): Promise<ProjectUpdate> {
-    const id = randomUUID();
-    const upd: ProjectUpdate = { id, userId, createdAt: new Date(), ...update } as ProjectUpdate;
-    this.projectUpdates.set(id, upd);
-    return upd;
+  async createUserUpdate(userId: string, update: InsertUserUpdate) {
+    const newUpdate: UserUpdate = {
+      ...update,
+      id: uuid(),
+      userId,
+      createdAt: now(),
+    };
+    this._userUpdates.push(newUpdate);
+    return newUpdate;
   }
 
-  async getWeeklyStats(userId: string): Promise<{ date: string; tasks: number; hours: number }[]> {
-    const last7: string[] = Array.from({ length: 7 }, (_, i) => {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      return d.toISOString().split('T')[0];
-    }).reverse();
-    return last7.map(date => {
-      const upd = this.dailyUpdates.get(this.dailyKey(userId, date));
-      return { date, tasks: upd?.tasksCompleted || 0, hours: upd ? Math.round(upd.hoursWorked / 60 * 10) / 10 : 0 };
-    });
+  async updateUserUpdate(updateId: string, updates: Partial<InsertUserUpdate>) {
+    const existing = this._userUpdates.find((u) => u.id === updateId);
+    if (!existing) throw new Error("Update not found");
+    Object.assign(existing, updates);
+    return existing;
   }
 
-  async getMonthlyStats(userId: string): Promise<{ tasks: number; hours: number; streak: number }> {
-    const month = new Date().toISOString().slice(0, 7);
-    const updates = Array.from(this.dailyUpdates.values()).filter(u => u.userId === userId && u.date.startsWith(month));
-    const totalTasks = updates.reduce((s, u) => s + u.tasksCompleted, 0);
-    const totalHours = updates.reduce((s, u) => s + u.hoursWorked, 0);
-    const all = Array.from(this.dailyUpdates.values()).filter(u => u.userId === userId).sort((a,b)=>b.date.localeCompare(a.date));
-    let streak = 0;
-    const today = new Date().toISOString().split('T')[0];
-    let cur = new Date(today);
-    for (const upd of all) {
-      const d = new Date(upd.date);
-      if (d.toISOString().split('T')[0] === cur.toISOString().split('T')[0]) {
-        if (upd.tasksCompleted > 0) {
-          streak++;
-          cur.setDate(cur.getDate() - 1);
-        } else break;
-      } else break;
-    }
-    return { tasks: totalTasks, hours: Math.round(totalHours / 60 * 10) / 10, streak };
+  async getTasks(userId: string) {
+    return this._tasks.filter((t) => t.userId === userId);
+  }
+
+  async getTask(taskId: string) {
+    return this._tasks.find((t) => t.id === taskId);
+  }
+
+  async createTask(userId: string, task: InsertTask) {
+    const newTask: Task = {
+      ...task,
+      id: uuid(),
+      userId,
+      createdAt: now(),
+      updatedAt: now(),
+      description: task.description ?? null,
+      teamId: task.teamId ?? null,
+      ticketNumber: task.ticketNumber ?? null,
+      hoursWorked: task.hoursWorked ?? null,
+    };
+    this._tasks.push(newTask);
+    return newTask;
+  }
+
+  async updateTask(taskId: string, updates: Partial<InsertTask>) {
+    const task = await this.getTask(taskId);
+    if (!task) throw new Error("Task not found");
+    Object.assign(task, updates);
+    task.updatedAt = now();
+    return task;
+  }
+
+  async getUserTasks(userId: string) {
+    return this._tasks.filter((t) => t.userId === userId);
+  }
+
+  async getUserRecentTasks(userId: string) {
+    return this._tasks.filter((t) => t.userId === userId);
+  }
+
+  async getWeeklyStats(userId: string) {
+    return [];
+  }
+
+  async getMonthlyStats(userId: string) {
+    return { tasks: 0, hours: 0, streak: 0 };
   }
 
   async getAllTeams(): Promise<Team[]> {
-    return Array.from(this.teams.values());
-  }
-
-  async getUserTeams(userId: string): Promise<(TeamMembership & { team: Team })[]> {
-    const memberships = Array.from(this.memberships.values()).filter(m => m.userId === userId);
-    return memberships.map(m => ({ ...m, team: this.teams.get(m.teamId)! }));
-  }
-
-  async getTeamProjects(teamId: string): Promise<Project[]> {
-    return Array.from(this.projects.values()).filter(p => p.teamId === teamId);
-  }
-
-  async getTeamMembers(teamId: string): Promise<(TeamMembership & { user: User })[]> {
-    const memberships = Array.from(this.memberships.values()).filter(m => m.teamId === teamId && m.status === 'ACTIVE');
-    return memberships.map(m => ({ ...m, user: this.users.get(m.userId)! }));
+    return [];
   }
 
   async createTeam(userId: string, team: InsertTeam): Promise<Team> {
-    const id = randomUUID();
-    const now = new Date();
-    const t: Team = { id, createdBy: userId, createdAt: now, updatedAt: now, ...team } as Team;
-    this.teams.set(id, t);
-    return t;
-  }
-
-  async joinTeam(userId: string, teamId: string): Promise<TeamMembership> {
-    const id = randomUUID();
-    const membership: TeamMembership = { id, userId, teamId, role: 'MEMBER', status: 'PENDING', joinedAt: new Date() } as TeamMembership;
-    this.memberships.set(id, membership);
-    return membership;
-  }
-
-  async updateMembershipStatus(membershipId: string, status: string): Promise<TeamMembership> {
-    const m = this.memberships.get(membershipId);
-    if (!m) throw new Error('Membership not found');
-    m.status = status as any;
-    this.memberships.set(membershipId, m);
-    return m;
+    return { ...team, id: uuid(), createdAt: now(), updatedAt: now(), ownerId: userId };
   }
 
   async getAllUsers(): Promise<User[]> {
-    return Array.from(this.users.values());
+    return this._users;
   }
 
-  async getAllMemberships(): Promise<(TeamMembership & { user: User; team: Team })[]> {
-    return Array.from(this.memberships.values()).map(m => ({ ...m, user: this.users.get(m.userId)!, team: this.teams.get(m.teamId)! }));
+  async getAllMemberships(): Promise<(TeamMembership & { team: Team; user: User })[]> {
+    return [];
+  }
+
+  async updateMembershipStatus(membershipId: string, status: string): Promise<TeamMembership> {
+    throw new Error("Not implemented");
+  }
+
+  async getUserTeams(userId: string): Promise<(TeamMembership & { team: Team })[]> {
+    return [];
+  }
+
+  async getTeamProjects(teamId: string): Promise<Project[]> {
+    return [];
+  }
+
+  async getTeamMembers(teamId: string): Promise<(TeamMembership & { user: User })[]> {
+    return [];
+  }
+
+  async getTeamUpdates(teamId: string): Promise<(UserUpdate & { user: User; project?: Project })[]> {
+    return [];
+  }
+
+  async getTeamMetrics(teamId: string): Promise<{
+    totalProjects: number;
+    activeProjects: number;
+    completedProjects: number;
+    totalMembers: number;
+    totalHours: number;
+    completionRate: number;
+  }> {
+    return {
+      totalProjects: 0,
+      activeProjects: 0,
+      completedProjects: 0,
+      totalMembers: 0,
+      totalHours: 0,
+      completionRate: 0,
+    };
+  }
+
+  async createTeamMembership(userId: string, teamId: string): Promise<TeamMembership> {
+    return {
+      id: uuid(),
+      userId,
+      teamId,
+      status: "active",
+      createdAt: now(),
+      updatedAt: now(),
+    };
+  }
+
+  async getAdminMetrics() {
+    return {
+      totalUsers: this._users.length,
+      totalTeams: 0,
+      totalProjects: this._projects.length,
+      activeUsers: this._users.length,
+      pendingUsers: 0,
+      completedTasks: this._tasks.length,
+      taskCompletionRate: 0,
+      projectCompletionRate: 0,
+    };
+  }
+
+  async getAllProjects() {
+    return this._projects;
+  }
+
+  async getRecentUpdates(): Promise<(UserUpdate & { user: User; team?: Team })[]> {
+    return this._userUpdates.map((u) => ({
+      ...u,
+      user: this._users.find((usr) => usr.id === u.userId)!,
+    }));
+  }
+
+  async getUserMetrics(userId: string) {
+    return {
+      totalTasks: 0,
+      completedTasks: 0,
+      inProgressTasks: 0,
+      blockedTasks: 0,
+      totalHours: 0,
+      todayHours: 0,
+      completionRate: 0,
+      averageTaskTime: 0,
+    };
   }
 }
 

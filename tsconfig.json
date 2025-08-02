@@ -1,31 +1,23 @@
 {
-  "tsconfig.json": {
-    "include": ["client/src/**/*", "shared/**/*", "server/**/*"],
-    "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
-    "compilerOptions": {
-      "incremental": true,
-      "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",
-      "noEmit": true,
-      "target": "ES2020",
-      "module": "ESNext",
-      "strict": true,
-      "lib": ["esnext", "dom", "dom.iterable"],
-      "jsx": "react-jsx",
-      "esModuleInterop": true,
-      "skipLibCheck": true,
-      "allowImportingTsExtensions": true,
-      "moduleResolution": "bundler",
-      "baseUrl": ".",
-      "types": ["node", "vite/client"],
-      "paths": {
-        "@/*": ["./client/src/*"],
-        "@shared/*": ["./shared/*"],
-        "@assets/*": ["./attached_assets/*"]
-      }
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "allowJs": true,
+    "checkJs": false,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["client/src/*"],
+      "@shared/*": ["shared/*"]
     }
   },
-
-  "server/index.ts": "import express, { type Request, Response, NextFunction } from 'express';\nimport cors from 'cors';\nimport { registerRoutes } from './routes';\nimport { setupVite, serveStatic, log } from './vite';\n\nconst app = express();\napp.use(cors({ origin: true, credentials: true }));\napp.use(express.json());\napp.use(express.urlencoded({ extended: false }));\n\napp.use((req, res, next) => {\n  const start = Date.now();\n  const path = req.path;\n  let capturedJsonResponse: Record<string, any> | undefined = undefined;\n  const originalResJson = res.json;\n  res.json = function (bodyJson, ...args) {\n    capturedJsonResponse = bodyJson;\n    return originalResJson.apply(res, [bodyJson, ...args]);\n  };\n  res.on('finish', () => {\n    const duration = Date.now() - start;\n    if (path.startsWith('/api')) {\n      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;\n      if (capturedJsonResponse) {\n        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;\n      }\n      if (logLine.length > 80) {\n        logLine = logLine.slice(0, 79) + '…';\n      }\n      log(logLine);\n    }\n  });\n  next();\n});\n\n(async () => {\n  const server = await registerRoutes(app);\n  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {\n    const status = err.status || err.statusCode || 500;\n    const message = err.message || 'Internal Server Error';\n    res.status(status).json({ message });\n    throw err;\n  });\n  if (app.get('env') === 'development') {\n    await setupVite(app, server);\n  } else {\n    serveStatic(app);\n  }\n  const port = parseInt(process.env.PORT || '5000', 10);\n  server.listen({\n    port,\n    host: '0.0.0.0',\n    reusePort: true\n  }, () => {\n    log(`serving on port ${port}`);\n  });\n})();",
-
-  "vite.config.ts": "import { defineConfig } from 'vite';\nimport react from '@vitejs/plugin-react';\nimport path from 'path';\n\nexport default defineConfig(async () => {\n  return {\n    base: '/DUD/',\n    plugins: [\n      react(),\n      ...(process.env.NODE_ENV !== 'production' && process.env.REPL_ID !== undefined\n        ? [\n            (await import('@replit/vite-plugin-runtime-error-modal')).default(),\n            (await import('@replit/vite-plugin-cartographer')).cartographer(),\n          ]\n        : [])\n    ],\n    resolve: {\n      alias: {\n        '@': path.resolve(__dirname, 'client', 'src'),\n        '@shared': path.resolve(__dirname, 'shared'),\n        '@assets': path.resolve(__dirname, 'attached_assets')\n      }\n    },\n    root: path.resolve(__dirname, 'client'),\n    build: {\n      outDir: path.resolve(__dirname, 'dist/public'),\n      emptyOutDir: true\n    },\n    server: {\n      fs: {\n        strict: true,\n        deny: ['**/.*']\n      }\n    }\n  };\n});"
+  "include": ["server", "shared", "client/src"],
+  "exclude": ["node_modules", "dist"]
 }
