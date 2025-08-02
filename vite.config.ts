@@ -1,4 +1,5 @@
 import { defineConfig, type PluginOption } from 'vite';
+// @ts-nocheck
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { fileURLToPath } from 'url';

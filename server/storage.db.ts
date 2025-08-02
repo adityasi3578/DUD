@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { eq, desc, and, gte, sql } from "drizzle-orm";
-import { db } from "./db";
+import { db } from "./db.ts";
 import {
   users,
   teams,
@@ -32,7 +32,7 @@ import {
   type InsertUserUpdate,
   type Task,
   type InsertTask,
-} from "@shared/schema";
+} from "@shared/schema.ts";
 
 import type { IStorage } from "./storage.impl";
 

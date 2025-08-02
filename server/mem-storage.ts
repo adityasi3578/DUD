@@ -31,7 +31,7 @@ import {
   type InsertUserUpdate,
   type Task,
   type InsertTask,
-} from "@shared/schema";
+} from "@shared/schema.ts";
 
 import type { IStorage } from "./storage.impl";
 
