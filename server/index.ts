@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { registerRoutes } from "./routes.ts";
 import { setupVite, serveStatic, log } from "./vite.ts";
+import { healthCheck } from "./health.ts";
 
 const app = express();
 
@@ -36,6 +37,8 @@ app.use((req, res, next) => {
 
   next();
 });
+
+app.get("/api/health", healthCheck);
 
 function startServer() {
   registerRoutes(app).then((server) => {
