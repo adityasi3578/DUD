@@ -1,0 +1,28 @@
+name: Deploy to GCP VM
+
+on:
+  push:
+    branches: [main]  # ya jis branch se aap deploy karte ho
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+
+      - name: Deploy code to GCP VM
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} << 'EOF'
+            cd ~/DUD || git clone https://github.com/adityasi3578/DUD.git && cd DUD
+            git pull origin main
+            cd server
+            npm install
+            pm2 restart index.js || pm2 start index.js --name dud-backend
+          EOF
