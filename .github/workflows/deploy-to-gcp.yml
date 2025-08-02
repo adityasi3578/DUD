@@ -29,3 +29,5 @@ jobs:
           npx tsc
           pm2 restart dist/index.js || pm2 start dist/index.js --name dud-backend
         EOF
+
+        
