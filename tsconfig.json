@@ -10,7 +10,6 @@
     "strict": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "allowImportingTsExtensions": true,
     "types": ["vite/client"],
     "jsx": "react-jsx",
     "noEmit": true,
