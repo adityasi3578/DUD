@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { healthCheck } from '../server/health.ts';
+import { healthCheck } from '../server/health.js';
 
 test('healthCheck responds with status ok', () => {
   let payload: any;
