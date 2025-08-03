@@ -31,9 +31,9 @@ import {
   type InsertUserUpdate,
   type Task,
   type InsertTask,
-} from "@shared/schema.js";
+} from "@shared/schema";
 
-import type { IStorage } from "./storage.impl.js";
+import type { IStorage } from "./storage.impl";
 
 function now(): Date {
   return new Date();

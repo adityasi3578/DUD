@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { eq, desc, and, gte, sql } from "drizzle-orm";
-import { db } from "./db.js";
+import { db } from "./db";
 import {
   users,
   teams,
@@ -32,9 +32,9 @@ import {
   type InsertUserUpdate,
   type Task,
   type InsertTask,
-} from "@shared/schema.js";
+} from "@shared/schema";
 
-import type { IStorage } from "./storage.impl.js";
+import type { IStorage } from "./storage.impl";
 
 export const dbStorage: IStorage = {
   async getUser(id) {
