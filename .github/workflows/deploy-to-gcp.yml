@@ -20,14 +20,23 @@ jobs:
     - name: Deploy code to GCP VM
       run: |
         ssh -o StrictHostKeyChecking=no ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} << 'EOF'
-          export NODE_OPTIONS="--max-old-space-size=2048"
-          cd ~/DUD || (git clone https://github.com/adityasi3578/DUD.git && cd DUD)
-          cd ~/DUD
-          git pull origin main
-          cd server
-          npm ci
-          npx tsc
-          pm2 restart dist/index.js || pm2 start dist/index.js --name dud-backend
-        EOF
+          set -e
 
-        
+          echo "[1] Mark repo as safe"
+          git config --global --add safe.directory /home/github-actions/DUD
+
+          echo "[2] Set correct ownership"
+          sudo chown -R github-actions:github-actions /home/github-actions/DUD
+
+          echo "[3] Cleanup and install"
+          cd /home/github-actions/DUD
+          sudo rm -rf node_modules
+          sudo rm -f package-lock.json
+          npm install
+
+          echo "[4] Build backend"
+          npx tsc --project tsconfig.server.json
+
+          echo "[5] Restart PM2"
+          pm2 restart dud-backend || pm2 start dist/index.js --name dud-backend
+        EOF
