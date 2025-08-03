@@ -5,7 +5,7 @@
     // This satisfies TypeScript's requirement for using
     // `allowImportingTsExtensions` without disabling emission globally.
     "noEmit": false,
-    "emitDeclarationOnly": true,
+    "emitDeclarationOnly": false,
     "declaration": true,
     "outDir": "dist",
     "rootDir": "./",
