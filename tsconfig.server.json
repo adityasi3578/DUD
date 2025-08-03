@@ -1,9 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    // Only emit declaration files when compiling the backend
-    // This satisfies TypeScript's requirement for using
-    // `allowImportingTsExtensions` without disabling emission globally.
+    // Backend-specific compiler options
     "noEmit": false,
     "emitDeclarationOnly": false,
     "declaration": true,
@@ -11,7 +9,6 @@
     "rootDir": "./",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "allowImportingTsExtensions": true,
     "target": "ES2020",
     "noImplicitAny": false,
     "esModuleInterop": true,
