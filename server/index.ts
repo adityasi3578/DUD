@@ -1,8 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
-import { registerRoutes } from "./routes.ts";
-import { setupVite, serveStatic, log } from "./vite.ts";
-import { healthCheck } from "./health.ts";
+import { registerRoutes } from "./routes.js";
+import { setupVite, serveStatic, log } from "./vite.js";
+import { healthCheck } from "./health.js";
 
 const app = express();
 
