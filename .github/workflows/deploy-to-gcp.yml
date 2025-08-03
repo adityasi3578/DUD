@@ -38,5 +38,5 @@ jobs:
           npx tsc --project tsconfig.server.json
 
           echo "[5] Restart PM2"
-          pm2 restart dud-backend || pm2 start dist/index.js --name dud-backend
+          pm2 restart dud-backend || pm2 start dist/server/index.js --name dud-backend
         EOF
