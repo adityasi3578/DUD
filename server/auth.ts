@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
-import { storage } from "./storage.js";
-import type { User } from "@shared/schema.js";
+import { storage } from "./storage";
+import type { User } from "@shared/schema";
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 12);
